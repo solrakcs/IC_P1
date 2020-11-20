@@ -1,3 +1,7 @@
+; Creamos una regla para indicar las opciones elegidas y crear instancias de robot y niño
+; una vez creadas esas instancias se crea el juego elegido 3R/Memoria
+; Para las personalidades creamos 3 modos de funcionamiento: Neutro, Impaciente, Distraido
+
 (defrule comenzar_juego
     (eleccion ?c)
     (personalidad ?p)
@@ -57,7 +61,7 @@
 )
 
 
-
+; Esta bien generar dos reglas para generar cada juego? o podriamos decir que ambos tienen 9 casillas?
 (defrule jugar_juegoMemoria
     (eleccion tresEnRaya)
     ;Verificar que ya existe nino y robot
