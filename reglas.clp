@@ -14,6 +14,10 @@
     ;Crear instancia del robot
 )
 
+; Mi idea para las casillas
+; Crear un template/clase casilla con atributos x,y,activa,valor
+; Activa = True --> Carta volteada (En Memoria) OR Casilla Marcada por Usuario (3R)
+; Valor = X/O (En 3R) OR Forma en la carta (Memoria)
 (defrule jugar_tresEnRaya
     (eleccion tresEnRaya)
     ;Verificar que ya existe nino y robot
@@ -33,7 +37,8 @@
     (movimiento (usuario ?u) (x ?x) (y ?y))
     (turno ?u)
     ?c <- (casilla (x ?x) (y ?y) (vacio true))
-    ?jugador <- ;Instancia del jugador (nino o robot) que coincide con el usuario ?u
+    ?jugador <- 
+    ;Instancia del jugador (nino o robot) que coincide con el usuario ?u
     ;Suponer que el valor x/o se extrae como ?v
     =>
     (retract ?c)
