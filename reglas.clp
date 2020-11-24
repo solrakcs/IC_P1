@@ -19,18 +19,19 @@
 ; Activa = True --> Carta volteada (En Memoria) OR Casilla Marcada por Usuario (3R)
 ; Valor = X/O (En 3R) OR Forma en la carta (Memoria)
 (defrule jugar_tresEnRaya
-    (eleccion tresEnRaya)
-    ;Verificar que ya existe nino y robot
+
+    ?ni <- (object (is-a NIÑO) (Nombre ?nomn) (Ultima_accion ?ult_acc) (Personalidad ?per) (Eleccion Tres_en_raya))
+    ?robot <- (object (is-a ROBOT) (Nombre ?nomr) (Ultima_accion ?ult_acc))
     =>
-    (casilla (x 1) (y 1) (vacio true))
-    (casilla (x 2) (y 1) (vacio true))
-    (casilla (x 3) (y 1) (vacio true))
-    (casilla (x 1) (y 2) (vacio true))
-    (casilla (x 2) (y 2) (vacio true))
-    (casilla (x 3) (y 2) (vacio true))
-    (casilla (x 1) (y 3) (vacio true))
-    (casilla (x 2) (y 3) (vacio true))
-    (casilla (x 3) (y 3) (vacio true))
+    (Casilla (x 1) (y 1) (vacio true))
+    (Casilla (x 2) (y 1) (vacio true))
+    (Casilla (x 3) (y 1) (vacio true))
+    (Casilla (x 1) (y 2) (vacio true))
+    (Casilla (x 2) (y 2) (vacio true))
+    (Casilla (x 3) (y 2) (vacio true))
+    (Casilla (x 1) (y 3) (vacio true))
+    (Casilla (x 2) (y 3) (vacio true))
+    (Casilla (x 3) (y 3) (vacio true))
 )
 
 (defrule marcarCasilla
