@@ -1,6 +1,6 @@
 (defclass JUGADOR (is-a USER)
     (slot Nombre (type STRING))
-    (slot Ultima_accion (type )) ;Duda sobre tipo de Ultima_accion
+    (slot Ultima_accion (type SYMBOL) (allowed-symbols Ninguna) (default Ninguna)) 
 )
 
 
