@@ -48,6 +48,15 @@
     ; no vamos a imprimir el tablero?)
 )
 
+(defrule marcaRobot
+    ?con <- (juego (turn robot))
+    ?casilla <- (casilla (vacio true) (x ?x) (y ?y))
+    =>
+    (modify-instance ?casilla((vacio false) (valor x))
+    (printout t "El robot toma la accion: " ?act crlf)
+
+)
+
 ;Podria crear contadores para cada fila/columna/diagonal por usuario e irlos actualizando
 ;O crear un solo contador por usuario
 ;ver alguna forma de sumar en una regla las casillas que se llevan en todas direcciones
@@ -56,9 +65,22 @@
     ;verificar que existe una casilla a la que el usuario ?u le ha puesto un valor
     ;verificar que la suma horizontal, vertical o diagonal de las casillas correspondientes
     ;a la que se coloco, sea mayor al hecho contador actual del usuario
+    ?casilla <- (casilla (vacio false))
+    ?con <- (juego (turn ?user))
     =>
     ;actualizar contador
+
 )
+
+(defclass ContadorRaya (is-a USER)
+    (slot User (type SYMBOL) (allowed-symbols nino robot))
+    (slot Valor (type INTEGER))
+    (slot ID (type SYMBOL) (allowed-symbols D1 D2 H1 H2 H3 V1 V2 V3))
+    ;Arrays de Slots que ocupa la Raya 
+    (slot x ()) 
+    (slot y ())
+)
+
 
 (defrule victoria3Raya
     ;verificar que existe un hecho contador de un usuario ?u que sume 3
