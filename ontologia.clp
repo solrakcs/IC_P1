@@ -10,7 +10,7 @@
 ;    (slot Eleccion (type SYMBOL) (allowed-symbols Tres_en_raya Juego_de_memoria))
 ;)
 
-(defclass control (is-a USER)
+(defclass CONTROL (is-a USER)
     (slot eleccion (type SYMBOL) (allowed-symbols 3R JM))
     (slot personalidad (type SYMBOL) (allowed-symbols neutro distraido impaciente))
     (slot turno (type SYMBOL) (allowed-symbols kid robot))
@@ -29,7 +29,7 @@
     ; Activada: Dos definiciones distintas segun juego
     ; 1. En 3 en Raya, indicada si la casilla esta marcada, un no es que esta en blanco
     ; 2. En el juego de memoria, indica si la carta fue volteada
-    (slot Activada (type SYMBOL) (allowed-symbols true false))
+    (slot Activada (type SYMBOL) (allowed-symbols True False))
 
     ; Valor: X/O en 3eR, o un animal en JdM
     (slot Valor (type SYMBOL) (allowed-symbols X O Vacia 
