@@ -6,6 +6,7 @@
     (make-instance of NIÑO (Nombre Nino) (Ultima_accion Ninguna) (Personalidad ?per) (Eleccion ?elec))
 )
 
+; ===================== REGLAS TRES EN RAYA ====================
 
 ;Regla para iniciar las casillas si el juego es Tres_en_raya
 (defrule Jugar_tresEnRaya
@@ -20,9 +21,69 @@
     (Casilla (x 1) (y 3) (Valor Vacia))
     (Casilla (x 2) (y 3) (Valor Vacia))
     (Casilla (x 3) (y 3) (Valor Vacia))
-
 )
 
+(defrule condicionVictoria_tresEnRaya
+    ; Crear algun atributo que diga X es Robot y O es Usuario
+    ; Para luego hacer match aqui y poder imprimir quien gano
+    (Casilla (x 1) (y 1) (Valor ?va1))
+    (Casilla (x 2) (y 1) (Valor ?va2))
+    (Casilla (x 3) (y 1) (Valor ?va3))
+    (Casilla (x 1) (y 2) (Valor ?va4))
+    (Casilla (x 2) (y 2) (Valor ?va5))
+    (Casilla (x 3) (y 2) (Valor ?va6))
+    (Casilla (x 1) (y 3) (Valor ?va7))
+    (Casilla (x 2) (y 3) (Valor ?va8))
+    (Casilla (x 3) (y 3) (Valor ?va9))
+    (test (= ?va1 ?va2 ?va3) or (= ?va1 ?va4 ?va7) or (= ?va1 ?va5 ?va9) or (= ?va2 ?va5 ?va8) or 
+          (= ?va3 ?va6 ?va9) or (= ?va4 ?va5 ?va6) or (= ?va7 ?va8 ?va9) or (= ?va7 ?va5 ?va3))
+    =>
+    (printout t "¡El juego ha acabado!")
+    (halt)
+)
+
+(defrule juegaRobot_3R
+    ?con <- (object (is-a control) (eleccion Tres_en_raya) (turno robot))
+    ?cas <- (object (is-a casilla) (activada false))
+    =>
+    (modify-instance ?cas (valor X) (activada true))
+    (modify-instance ?con (turno kid)))
+)
+
+(defrule inputKid
+    ?con <- (object (is-a control) (turno kid))
+    =>
+    (printout t "Enter x: " crlf)
+    (assert (xKid (read)))
+    (printout t "Enter y: " crlf)
+    (assert (yKid (read)))
+)
+
+(defrule corregirAccionIncorrecta_3R
+    ?xkid <- (xKid ?x)
+    ?ykid <- (yKid ?y)
+    ; Poner tambien en esta regla si la casilla esta ocupada?
+    ;?cas <- (object (is-a casilla) (x ?) (y ) (activada false))
+    (test (> x 3) or (< x 1) or (> y 3) or (< y 1))
+    =>
+    (printout t "Accion incorrecta, elige X e Y entre [1,3] " crlf)
+    (retract ?xkid)
+    (retract ?ykid)
+)
+
+(defrule juegaKid_3R
+    ?con <- (object (is-a control) (eleccion Tres_en_raya) (turno kid))
+    ?cas <- (object (is-a casilla) (x ?x) (y ?y) (activada false))
+    ?xkid <- (xKid ?x)
+    ?ykid <- (yKid ?y)
+    =>
+    (retract ?xkid)
+    (retract ?ykid)
+    (modify-instance ?cas (valor O) (activada true))
+    (modify-instance ?con (turno robot)))
+)
+
+; ==================== REGLAS JUEGO DE MEMORIA ==========================
 
 ;Regla para iniciar las casillas si el juego es Juego_de_memoria
 (defrule Jugar_juegoMemoria
@@ -52,21 +113,6 @@
     (Casilla (x 22) (y 1) (Valor Vacia))
     (Casilla (x 23) (y 1) (Valor Vacia))
     (Casilla (x 24) (y 1) (Valor Vacia))
-
-
-(defrule condicionVictoria_tresEnRaya
-    (Casilla (x 1) (y 1) (Valor ?va1))
-    (Casilla (x 2) (y 1) (Valor ?va2))
-    (Casilla (x 3) (y 1) (Valor ?va3))
-    (Casilla (x 1) (y 2) (Valor ?va4))
-    (Casilla (x 2) (y 2) (Valor ?va5))
-    (Casilla (x 3) (y 2) (Valor ?va6))
-    (Casilla (x 1) (y 3) (Valor ?va7))
-    (Casilla (x 2) (y 3) (Valor ?va8))
-    (Casilla (x 3) (y 3) (Valor ?va9))
-    (test (= ?va1 ?va2 ?va3) or (= ?va1 ?va4 ?va7) or (= ?va1 ?va5 ?va9) or (= ?va2 ?va5 ?va8) or (= ?va3 ?va6 ?va9) or (= ?va4 ?va5 ?va6) or (= ?va7 ?va8 ?va9) or (= ?va7 ?va5 ?va3))
-    =>
-    (printout t "¡El juego ha acabado!")
 )
 
 (defrule Finalizar_Juego
