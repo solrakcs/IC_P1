@@ -67,7 +67,7 @@
     (test (= ?va1 ?va2 ?va3) or (= ?va1 ?va4 ?va7) or (= ?va1 ?va5 ?va9) or (= ?va2 ?va5 ?va8) or (= ?va3 ?va6 ?va9) or (= ?va4 ?va5 ?va6) or (= ?va7 ?va8 ?va9) or (= ?va7 ?va5 ?va3))
     =>
     (printout t "¡El juego ha acabado!")
-
+)
 
 (defrule Finalizar_Juego
 
