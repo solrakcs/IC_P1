@@ -26,19 +26,22 @@
 (defrule condicionVictoria_tresEnRaya
     ; Crear algun atributo que diga X es Robot y O es Usuario
     ; Para luego hacer match aqui y poder imprimir quien gano
-    (Casilla (x 1) (y 1) (Valor ?va1))
-    (Casilla (x 2) (y 1) (Valor ?va2))
-    (Casilla (x 3) (y 1) (Valor ?va3))
-    (Casilla (x 1) (y 2) (Valor ?va4))
-    (Casilla (x 2) (y 2) (Valor ?va5))
-    (Casilla (x 3) (y 2) (Valor ?va6))
-    (Casilla (x 1) (y 3) (Valor ?va7))
-    (Casilla (x 2) (y 3) (Valor ?va8))
-    (Casilla (x 3) (y 3) (Valor ?va9))
+    ?con <- (object (is-a control) (eleccion Tres_en_raya) (turno ?turn))
+
+    ?cas1 <- (object (is-a casilla) (x 1) (y 1) (valor ?va1))
+    ?cas2 <- (object (is-a casilla) (x 2) (y 1) (valor ?va2))
+    ?cas3 <- (object (is-a casilla) (x 3) (y 1) (valor ?va3))
+    ?cas4 <- (object (is-a casilla) (x 1) (y 2) (valor ?va4))
+    ?cas5 <- (object (is-a casilla) (x 2) (y 2) (valor ?va5))
+    ?cas6 <- (object (is-a casilla) (x 3) (y 2) (valor ?va6))
+    ?cas7 <- (object (is-a casilla) (x 1) (y 3) (valor ?va7))
+    ?cas8 <- (object (is-a casilla) (x 2) (y 3) (valor ?va8))
+    ?cas9 <- (object (is-a casilla) (x 3) (y 3) (valor ?va9))
+
     (test (= ?va1 ?va2 ?va3) or (= ?va1 ?va4 ?va7) or (= ?va1 ?va5 ?va9) or (= ?va2 ?va5 ?va8) or 
           (= ?va3 ?va6 ?va9) or (= ?va4 ?va5 ?va6) or (= ?va7 ?va8 ?va9) or (= ?va7 ?va5 ?va3))
     =>
-    (printout t "¡El juego ha acabado!")
+    (printout t "¡El juego ha acabado! El ganador es: " ?turn crlf)
     (halt)
 )
 
@@ -63,7 +66,7 @@
     ?xkid <- (xKid ?x)
     ?ykid <- (yKid ?y)
     ; Poner tambien en esta regla si la casilla esta ocupada?
-    ;?cas <- (object (is-a casilla) (x ?) (y ) (activada false))
+    ;?cas <-- (object (is-a casilla) (x ?) (y ) (activada false))
     (test (> x 3) or (< x 1) or (> y 3) or (< y 1))
     =>
     (printout t "Accion incorrecta, elige X e Y entre [1,3] " crlf)
