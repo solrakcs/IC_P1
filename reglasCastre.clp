@@ -187,6 +187,6 @@
     =>
     (retract ?xkid)
     (retract ?ykid)
-    (modify-instance ?cas (Valor ?va) (Activada true))
+    (modify-instance ?cas (Valor ?va) (Activada True))
     (modify-instance ?con (turno robot)))
 )
