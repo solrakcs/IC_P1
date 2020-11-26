@@ -63,6 +63,7 @@
     ; Crear algun atributo que diga X es Robot y O es Usuario
     ; Para luego hacer match aqui y poder imprimir quien gano
     ?con <- (object (is-a CONTROL) (eleccion Tres_en_raya) (turno ?turn))
+    ?strat <- (stratRandom)
 
     ?cas1 <- (object (is-a CASILLA) (x 1) (y 1) (valor ?va1))
     ?cas2 <- (object (is-a CASILLA) (x 2) (y 1) (valor ?va2))
@@ -100,7 +101,21 @@
     (modify-instance ?cas1 (x 1) (y 3) (valor X) (Activada True))
     (modify-instance ?con (turno kid)))
     (retract ?strat)
-    (assert strat12)
+    (assert stratRandom)
+)
+
+
+(defrule juegaRobot_3R_stratRandom
+    ?con <- (object (is-a CONTROL) (Eleccion Tres_en_raya) (turno robot))
+    ?cas <- (object (is-a CASILLA) (Activada False))
+    ?strat <- (stratRandom)
+    =>
+    (modify-instance ?cas (valor X) (Activada True))
+    (modify-instance ?con (turno kid)))
+    (retract ?strat)
+)
+
+
 
 (defrule inputKid_3R
     ?con <- (object (is-a CONTROL) (turno kid))
