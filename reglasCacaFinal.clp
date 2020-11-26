@@ -162,7 +162,7 @@
     ?cas <- (object (is-a CASILLA) (Activada False))
     (test (> ?ron 1))
     =>
-    (modify-instance ?cas (valor X) (Activada True) (Ronda (+ ?ron 1))
+    (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1)))
     (modify-instance ?con (Turno Kid))
 )
 
@@ -173,7 +173,7 @@
     (test (> ?ron 1))
     =>
     (printout t " ¡No seas impaciente, espera a que to mueva primero!")
-    (modify-instance ?cas (valor X) (Activada True) (Ronda (+ ?ron 1))
+    (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1)))
     (modify-instance ?con (Turno Kid))
 )
 
@@ -184,7 +184,7 @@
     (test (> ?ron 1))
     =>
     (printout t "¡Recuerda que despues de mi turno te toca a ti!")
-    (modify-instance ?cas (valor X) (Activada True) (Ronda (+ ?ron 1))
+    (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1)))
     (modify-instance ?con (Turno Kid))
 )
 
