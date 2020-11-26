@@ -14,7 +14,7 @@
     ?elec <- (eleccion_usuario)
     ?per <- (personalidad_usuario)
     =>
-    (make-instance of CONTROL (Eleccion ?elec) (Personalidad ?per) (Turno Robot) (ScoreRobot 0) (ScoreKid 0) (Ronda 0))
+    (make-instance of CONTROL (Eleccion ?elec) (Personalidad ?per) (Turno Robot) (ScoreRobot 0) (ScoreKid 0) (Ronda -1))
     (retract ?elec)
     (retract ?per)
 )
@@ -111,7 +111,7 @@
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Impaciente) (Turno Robot) (Ronda 0))
     ?cas <- (object (is-a CASILLA) (x 1) (y 1) (Activada False))
     =>
-    (printout t " ¡No seas impaciente, espera a que to mueva primero!")
+    (printout t " ¡No seas impaciente, espera a que yo mueva primero!")
     (modify-instance ?cas (x 1) (y 1) (Valor X) (Activada True) (Ronda + 1))
     (modify-instance ?con (Turno Kid))
 )
@@ -141,7 +141,7 @@
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Impaciente) (Turno Robot) (Ronda 1))
     ?cas <- (object (is-a CASILLA) (x 2) (y 2) (Activada False))
     =>
-    (printout t " ¡No seas impaciente, espera a que to mueva primero!")
+    (printout t " ¡No seas impaciente, espera a que yo mueva primero!")
     (modify-instance ?cas (x 1) (y 3) (Valor X) (Activada True) (Ronda + 1))
     (modify-instance ?con (Turno Kid))
 )
@@ -162,7 +162,7 @@
     ?cas <- (object (is-a CASILLA) (Activada False))
     (test (> ?ron 1))
     =>
-    (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1)))
+    (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1))
     (modify-instance ?con (Turno Kid))
 )
 
@@ -172,7 +172,7 @@
     ?cas <- (object (is-a CASILLA) (Activada False))
     (test (> ?ron 1))
     =>
-    (printout t " ¡No seas impaciente, espera a que to mueva primero!")
+    (printout t " ¡No seas impaciente, espera a que yo mueva primero!")
     (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1)))
     (modify-instance ?con (Turno Kid))
 )
@@ -187,7 +187,6 @@
     (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1)))
     (modify-instance ?con (Turno Kid))
 )
-
 
 
 
