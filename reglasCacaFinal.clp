@@ -157,4 +157,37 @@
 )
 
 
+(defrule JuegaRobot_3R_RRondas_Neutro
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Neutro) (Turno Robot) (Ronda ?ron))
+    ?cas <- (object (is-a CASILLA) (Activada False))
+    (test (> ?ron 1))
+    =>
+    (modify-instance ?cas (valor X) (Activada True) (Ronda (+ ?ron 1))
+    (modify-instance ?con (Turno Kid))
+)
+
+
+(defrule JuegaRobot_3R_RRondas_Impaciente
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
+    ?cas <- (object (is-a CASILLA) (Activada False))
+    (test (> ?ron 1))
+    =>
+    (printout t " ¡No seas impaciente, espera a que to mueva primero!")
+    (modify-instance ?cas (valor X) (Activada True) (Ronda (+ ?ron 1))
+    (modify-instance ?con (Turno Kid))
+)
+
+
+(defrule JuegaRobot_3R_RRondas_Distraido
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Distraido) (Turno Robot) (Ronda ?ron))
+    ?cas <- (object (is-a CASILLA) (Activada False))
+    (test (> ?ron 1))
+    =>
+    (printout t "¡Recuerda que despues de mi turno te toca a ti!")
+    (modify-instance ?cas (valor X) (Activada True) (Ronda (+ ?ron 1))
+    (modify-instance ?con (Turno Kid))
+)
+
+
+
 
