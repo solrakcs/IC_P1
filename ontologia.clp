@@ -14,6 +14,8 @@
     (slot eleccion (type SYMBOL) (allowed-symbols 3R JM))
     (slot personalidad (type SYMBOL) (allowed-symbols neutro distraido impaciente))
     (slot turno (type SYMBOL) (allowed-symbols kid robot))
+    (slot scoreRobot (type INTEGER) (default 0))
+    (slot scoreKid (type INTEGER) (default 0))
 )
 
 (defclass JUEGO (is-a USER)
