@@ -162,7 +162,7 @@
     ?cas <- (object (is-a CASILLA) (Activada False))
     (test (> ?ron 1))
     =>
-    (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1))
+    (modify-instance ?cas (Valor X) (Activada True) (Ronda (+ ?ron 1)))
     (modify-instance ?con (Turno Kid))
 )
 
