@@ -8,7 +8,8 @@
         (default Neutro))
     (slot Turno 
         (type SYMBOL) 
-        (allowed-symbols Kid Robot))
+        (allowed-symbols Kid Robot)
+        (default Robot))
     (slot ScoreRobot 
         (type INTEGER) 
         (default 0))
@@ -17,7 +18,7 @@
         (default 0))
     (slot Ronda 
         (type INTEGER) 
-        (default 1))
+        (default 0))
     (slot Cronometro 
         (type INTEGER) 
         (default 0))
