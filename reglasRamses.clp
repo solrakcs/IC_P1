@@ -116,7 +116,7 @@
     (test (or (eq ?p Neutro)
               (eq ?war True)))
     =>
-    (modify-instance ?cas (x 1) (y 3) (Valor X) (Activada True) (Ronda (+ ?r 1))
+    (modify-instance ?casM (x 1) (y 3) (Valor X) (Activada True) (Ronda (+ ?r 1)))
     (modify-instance ?con (Turno Kid))
     (retract ?w)
 )
@@ -146,8 +146,8 @@
     ;Cuando es el turno del niño..
     ?con <- (object (is-a CONTROL) (Turno Kid) (Cronometro ?c))
     ; y no ha elegido x e y...
-    not(xKid ?x)
-    not(yKid ?y)
+    (not(xKid ?x))
+    (not(yKid ?y))
     =>
     ; pedirle que introduzca x, y y el tiempo que tarda en responder (sensor del robot)
     (printout t "Ingresa x: " crlf)
