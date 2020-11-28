@@ -35,15 +35,15 @@
 (defrule initBoard3R
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Ronda 0))
     =>
-    (make-instance of CASILLA (x 1) (y 1) (Valor Vacia))
-    (make-instance of CASILLA (x 2) (y 1) (Valor Vacia))
-    (make-instance of CASILLA (x 3) (y 1) (Valor Vacia))
-    (make-instance of CASILLA (x 1) (y 2) (Valor Vacia))
-    (make-instance of CASILLA (x 2) (y 2) (Valor Vacia))
-    (make-instance of CASILLA (x 3) (y 2) (Valor Vacia))
-    (make-instance of CASILLA (x 1) (y 3) (Valor Vacia))
-    (make-instance of CASILLA (x 2) (y 3) (Valor Vacia))
-    (make-instance of CASILLA (x 3) (y 3) (Valor Vacia))
+    (make-instance of CASILLA (x 1) (y 1))
+    (make-instance of CASILLA (x 2) (y 1))
+    (make-instance of CASILLA (x 3) (y 1))
+    (make-instance of CASILLA (x 1) (y 2))
+    (make-instance of CASILLA (x 2) (y 2))
+    (make-instance of CASILLA (x 3) (y 2))
+    (make-instance of CASILLA (x 1) (y 3))
+    (make-instance of CASILLA (x 2) (y 3))
+    (make-instance of CASILLA (x 3) (y 3))
     (modify-instance ?con (Ronda 1))
 )
 
@@ -96,6 +96,7 @@
     (halt)
 )
 
+;Reinicia hechos de warning, kidPlayed y robotPlayed a False, y va a la siguiente ronda
 (defrule changeRound
     ?con <- (object (is-a CONTROL) (Turno Kid) (Ronda ?ron))
 
@@ -111,7 +112,6 @@
     ;Cambio de ronda, indicar en la BH que ningun jugador ha tomado accion en esta ronda aun
     (retract ?kp)
     (retract ?rp)
-    ;Hechos de control para verificar que los jugadores ya han tomado accion en su turno en la nueva ronda
     (assert (kidPlayed False))
     (assert (robotPlayed False))
     ;Indicar que no se ha hecho el warning en esta ronda
@@ -126,7 +126,7 @@
     ?rp <- (robotPlayed True)
     =>
     (modify-instance ?con (Turno Kid))
-    (printout t "Cambio de turno. Termina robot, turno del niño")
+    (printout t "Cambio de turno: Termina robot, turno del niño" crlf)
 )
 
 
@@ -144,11 +144,12 @@
     ?rp <- (robotPlayed False)
     =>
     ;Marcar casilla (1,1)
-    (modify-instance ?cas (x 1) (y 1) (Valor X) (Activada True))
+    (modify-instance ?cas (Valor X) (Activada True))
     ;Eliminar de la BH el hecho que indica que el robot no ha jugado esta ronda
     (retract ?rp)
     ;Indicar en la BH que el robot ya jugo en esta ronda
     (assert (robotPlayed True))
+    (printout t "Robot marca X en casilla (" 1 "," 1 ")" crlf)
 )
 
 ;!!! REVISAR: NO PUEDE CAMBIAR DE TURNO AUN
@@ -156,7 +157,7 @@
 (defrule JuegaRobot_3R_Ronda2
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot) (Ronda 2))
     ;Si el niño todavia no ha colocado una O en la casilla del medio (2,2).. 
-    ?casM <- (object (is-a CASILLA) (x 2) (y 2) (Activada False))
+    ?cas22 <- (object (is-a CASILLA) (x 2) (y 2) (Activada False))
     ;..ver si la casilla (1,3) esta vacia
     ?cas <- (object (is-a CASILLA) (x 1) (y 3) (Activada False))
     ;Se ejecuta la accion del robot una vez ha hecho el aviso al niño según su personalidad, o si la personalidad es neutra
@@ -166,43 +167,45 @@
 
     ?rp <- (robotPlayed False)
     =>
-    ;Colocar X en la casilla (1,3)
+    ;Marcar casilla (1,3)
     (modify-instance ?cas (Valor X) (Activada True))
-
-    ;NO PUEDE CAMBIAR DE TURNO AUN!!!
-    (modify-instance ?con (Turno Kid))
-    (retract ?w)
+    ;Eliminar de la BH el hecho que indica que el robot no ha jugado esta ronda
     (retract ?rp)
+    ;Indicar en la BH que el robot ya jugo en esta ronda
     (assert (robotPlayed True))
+    (printout t "Robot marca X en casilla (" 1 "," 3 ")" crlf)
 )
 
 ;Estrategia Robot en Ronda 3 o más, o si en la ronda 2 esta ocupada la casilla (2,2)
 (defrule JuegaRobot_3R_RRondas
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot) (Ronda ?ron))
     ;Elige una casilla al azar
-    ?cas <- (object (is-a CASILLA) (Activada False))
-    ?casM <- (object (is-a CASILLA) (x 2) (y 2) (Activada ?aM))
+    ?cas <- (object (is-a CASILLA) (x ?x) (y ?y) (Activada False))
+    ;La regla se ejecuta si ronda > 2 OR, si la casilla (2,2) o la (1,3) esta activada (ocupada)
+    ?casM <- (object (is-a CASILLA) (x 2) (y 2) (Activada ?a22))
     ?cas13 <- (object (is-a CASILLA) (x 1) (y 3) (Activada ?a13))
-    ;La regla se ejecuta si ronda > 2 OR si la casilla (2,2) o la (1,3) esta activada (ocupada)
+
     (test (or 
             (> ?ron 2)
             (or
                 (eq ?a13 True) 
-                (eq ?aM True)))
+                (eq ?a22 True)))
     )
     ;Se ejecuta la accion del robot una vez ha hecho el aviso al niño según su personalidad, o si la personalidad es neutra
     ?w <- (warningBeforeDone ?war)
     (test (or (eq ?p Neutro)
               (eq ?war True)))
 
+    ;Verificar que el robot no haya jugado aun en esta ronda
     ?rp <- (robotPlayed False)
     =>
+    ;Marcar casilla elegida al azar
     (modify-instance ?cas (Valor X) (Activada True))
-    (modify-instance ?con (Turno Kid))
-    ;Elimina hecho que indica la realizacion de warning para que se realice de nuevo en la siguiente ronda
-    (retract ?w)
+    ;Eliminar de la BH el hecho que indica que el robot no ha jugado esta ronda
     (retract ?rp)
+    ;Indicar en la BH que el robot ya jugo en esta ronda
     (assert (robotPlayed True))
+    (printout t "Robot marca X en casilla (" ?x "," ?y ")" crlf)
 )
 
 ; --------------- Reglas de Input del Usuario para 3 en Raya -----------------
@@ -239,7 +242,7 @@
     ?kp <- (kidPlayed False)
     =>
     ;Marca la casilla (x,y)
-    (modify-instance ?cas (Valor O) (Activada true))
+    (modify-instance ?cas (Valor O) (Activada True))
     ;Indica en la BH que el niño ya jugo en esta ronda
     (retract ?kp)
     (assert (kidPlayed True))
@@ -247,6 +250,8 @@
     ;Borra hechos de entrada del niño (x,y) para que se vuelvan a solicitar en la ronda siguiente
     (retract ?xkid)
     (retract ?ykid)
+
+    (printout t "Has marcado la casilla (" ?x "," ?y ") correctamente!" crlf) 
 )
 
 ; ------------------ Reglas para interaccion Robot-Paciente --------------------
@@ -275,7 +280,7 @@
     ?w <- (warningBeforeDone False)
     (test (> ?ron 0))
     =>
-    (printout t " ¡No seas impaciente, espera a que yo mueva primero!")
+    (printout t " ¡No seas impaciente, espera a que yo mueva primero!" crlf)
     (retract ?w)
     (assert (warningBeforeDone True))
 )
@@ -285,7 +290,7 @@
     ?w <- (warningBeforeDone False)
     (test (> ?ron 0))
     =>
-    (printout t "¡Recuerda que despues de mi turno te toca a ti!")
+    (printout t "¡Recuerda que despues de mi turno te toca a ti!" crlf)
     (retract ?w)
     (assert (warningBeforeDone True))
 )

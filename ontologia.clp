@@ -41,11 +41,13 @@
     ; 2. En el juego de memoria, indica si la carta fue volteada
     (slot Activada 
         (type SYMBOL) 
-        (allowed-symbols True False))
+        (allowed-symbols True False)
+        (default False))
     ; Valor: X/O en 3eR, o un animal en JdM
     (slot Valor 
         (type SYMBOL) 
-        (allowed-symbols X O Vacia Monkey Dog Cat Horse Shark Tiger Pig Dolphin Dragon Panda Bird Eagle))
+        (allowed-symbols X O Vacia Monkey Dog Cat Horse Shark Tiger Pig Dolphin Dragon Panda Bird Eagle)
+        (default Vacia))
     (slot x 
         (type INTEGER))
     (slot y 
