@@ -16,7 +16,9 @@
     (eleccion_usuario ?elec)
     (personalidad_usuario ?per)
     =>
-    (make-instance of CONTROL (Eleccion ?elec) (Personalidad ?per))
+    (make-instance of CONTROL (Eleccion ?elec) (Personalidad ?per) (Turno Robot))
+    ;Hecho de control para el warning que se lanza antes de que el robot juegue
+    (assert (warningBeforeDone False))
     ;(assert(robotSymbol X))
     ;(assert(userSymbol O))
     (retract ?elec)
@@ -197,15 +199,19 @@
 ; Son reutilizables para JM
 (defrule warningBeforeTurn_Impacient
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
+    ?w <- (warningBeforeDone False)
     =>
     (printout t " ¡No seas impaciente, espera a que yo mueva primero!")
+    (retract ?w)
     (assert (warningBeforeDone True))
 )
 
 (defrule warningBeforeTurn_Distracted
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Distraido) (Turno Robot) (Ronda ?ron))
+    ?w <- (warningBeforeDone False)
     =>
     (printout t "¡Recuerda que despues de mi turno te toca a ti!")
+    (retract ?w)
     (assert (warningBeforeDone True))
 )
 
