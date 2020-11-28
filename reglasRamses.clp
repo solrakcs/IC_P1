@@ -171,7 +171,7 @@
     (retract ?xkid)
     (retract ?ykid)
     ;Marca la casilla (x,y)
-    (modify-instance ?cas (Valor O) (Activada true))
+    (modify-instance ?cas (Valor O) (Activada True))
     ;Pasa turno a robot y cambia a siguiente ronda
     (modify-instance ?con (Turno Robot) (Ronda (+ ?r 1)))
 )
@@ -195,7 +195,7 @@
     ;No se vuelve a solicitar entrada, simplemente se avisa de que tardo mucho en decidir
 )
 
-;Las reglas siguientes se ejecutan antes de que el robot mueva
+; Las reglas siguientes se ejecutan antes de que el robot mueva
 ; Son reutilizables para JM
 (defrule warningBeforeTurn_Impacient
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
@@ -347,3 +347,116 @@
     (retract ?w)
 )
 
+
+; --------------- Reglas de Input del Usuario para Juego de Memoria -----------------
+
+
+; Regla para leer el input del niño
+; Regla reutilizable
+(defrule inputKid_JM
+    ;Cuando es el turno del niño..
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Cronometro ?c))
+    ; y no ha elegido x
+    (not(xKid1 ?x1))
+    (not(xKid2 ?x2))
+    =>
+    ;...pedirle que introduzca x, y y el tiempo que tarda en responder (sensor del robot)
+    (printout t "Ingresa la primera carta: " crlf)
+    (assert (xKid1 (read)))
+    (printout t "Ingresa la segunda carta: " crlf)
+    (assert (xKid2 (read)))
+    (printout t "Ingresa el tiempo tomado:" crlf)
+    (modify-instance ?con (Cronometro (read)))
+)
+
+
+(defrule juegaKid_JM
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Ronda ?r))
+    ?cas1 <- (object (is-a CASILLA) (Valor ?val1) (x ?x1) (Activada False))
+    ?cas2 <- (object (is-a CASILLA) (Valor ?val2) (x ?x2) (Activada False))
+    ?xkid1 <- (xKid1 ?x1)
+    ?xkid2 <- (xKid2 ?x2)
+    =>
+    ;Borra hechos de entrada (x) para que se vuelvan a solicitar en la ronda siguiente
+    (retract ?xkid1)
+    (retract ?xkid2)
+    ;Activa la casillas
+    (modify-instance ?cas1 (Valor ?val1) (Activada True))
+    (modify-instance ?cas2 (Valor ?val2) (Activada True))
+    ;Pasa turno a robot y cambia a siguiente ronda
+    (modify-instance ?con (Turno Robot) (Ronda (+ ?r 1)))
+)
+
+
+; ------------------ Reglas para interaccion Robot-Paciente --------------------
+
+
+; Regla reuitilizable
+(defrule overTimeDistractedKid_JM
+    ;Se ejecuta cuando el niño tarda mas de 15 segundos en ingresar (x) y es de personalidad distraida
+    ?con <- (object (is-a CONTROL) (Turno Kid) (Personalidad Distraido) (Cronometro ?c))
+    (test (> ?c 15))
+    ;Se ejecuta luego de recibir input (x) del usuario
+    (xKid1 ?x1)
+    (xKid2 ?x2)
+    ;!!!! Ver como dar prioridad sobre juegaKid_3R y corregirAccionIncorrecta
+    ;Por ahora prioridad con salience, pero ver si se puede implementar otra cosa
+    ;Podria implementar un hecho warningDistracted
+    (salience 10)
+    =>
+    (printout t "Has tardado mucho tiempo en elegir! Tienes que concentrarte mejor." crlf)
+    ;No se vuelve a solicitar entrada, simplemente se avisa de que tardo mucho en decidir
+)
+
+; Las reglas siguientes se ejecutan antes de que el robot mueva
+; Regla reutilizable
+(defrule warningBeforeTurn_Impacient_JM
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
+    ?w <- (warningBeforeDone False)
+    =>
+    (printout t " ¡No seas impaciente, espera a que yo mueva primero!")
+    (retract ?w)
+    (assert (warningBeforeDone True))
+)
+
+
+(defrule warningBeforeTurn_Distracted_JM
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Personalidad Distraido) (Turno Robot) (Ronda ?ron))
+    ?w <- (warningBeforeDone False)
+    =>
+    (printout t "¡Recuerda que despues de mi turno te toca a ti!")
+    (retract ?w)
+    (assert (warningBeforeDone True))
+)
+
+
+;Indica que la casilla esta fuera de rango y elimina la entrada del usurio para obligarle a ingresar una nueva (x)
+(defrule corregirCasillaOutOfBounds_JM
+    ;Se corrige al recibir input (x) del usuario
+    ?xkid1 <- (xKid1 ?x1)
+    ?xkid2 <- (xKid2 ?x2)
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid))
+    
+    ;Ejecutar regla si x > 1 OR x < 24
+    (test (and (and (< ?x1 24) (> ?x1 0)) (and (< ?x2 24) (> ?x2 0))))
+    =>
+    (printout t "Accion incorrecta! La casilla que has elegido esta fuera de rango." crlf)
+    ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
+    (retract ?xkid1)
+    (retract ?xkid2)
+)
+
+
+;Indica que la casilla (x,y) elegida esta ya levantada y elimina entrada del usuario para que ingrese un nuevo par (x)
+;Esta es reutilizable
+(defrule corregirCasillaOcupada_JM
+    ;Se corrige al recibir input (x,y) del usuario
+    ?xkid <- (xKid ?x)
+    ;Ejecutar regla cuando casilla (x,y) Activada (ocupada)
+    ?cas <- (object (is-a CASILLA) (x ?x) (Activada True))
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid))
+    =>
+    (printout t "Accion incorrecta! La casilla que has elegido esta ocupada." crlf)
+    ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
+    (retract ?xkid)
+)
