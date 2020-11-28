@@ -60,8 +60,7 @@
             ;Si es el turno del robot que el robot ya haya marcado en esta ronda
             (and (eq ?turn Robot) (eq ?robot True))
             ;Si es el turno del niño que el niño ya haya marcado en esta ronda
-            (and (eq ?turn Kid) (eq ?kid True))
-         )
+            (and (eq ?turn Kid) (eq ?kid True)))
     )
 
     ;Leer tablero entero
@@ -97,14 +96,15 @@
     (halt)
 )
 
-
-;MIRAR PARA GENERALIZAR!
-(defrule changeRound_3R
+(defrule changeRound
     ?con <- (object (is-a CONTROL) (Turno Kid) (Ronda ?ron))
 
     ;Verificar que ambos jugadores ya han tomado acciones en esta ronda
     ?kp <- (kidPlayed True)
     ?rp <- (robotPlayed True)
+
+    ;Almacenar hecho warning de antes de que juegue el robot para modificaciones
+    ?w <- (warningBeforeDone ?war)
     =>
     (modify-instance ?con (Turno Robot) (Ronda (+ ?ron 1)))
 
@@ -114,8 +114,19 @@
     ;Hechos de control para verificar que los jugadores ya han tomado accion en su turno en la nueva ronda
     (assert (kidPlayed False))
     (assert (robotPlayed False))
+    ;Indicar que no se ha hecho el warning en esta ronda
+    (retract ?w)
+    (assert (warningBeforeDone False))
     
     (printout t "Cambio de ronda: " ?ron " a ronda: " (+ ?ron 1) crlf)
+)
+
+(defrule changeTurn
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot))
+    ?rp <- (robotPlayed True)
+    =>
+    (modify-instance ?con (Turno Kid))
+    (printout t "Cambio de turno. Termina robot, turno del niño")
 )
 
 
@@ -132,10 +143,11 @@
 
     ?rp <- (robotPlayed False)
     =>
+    ;Marcar casilla (1,1)
     (modify-instance ?cas (x 1) (y 1) (Valor X) (Activada True))
-    (modify-instance ?con (Turno Kid))
-    (retract ?w)
+    ;Eliminar de la BH el hecho que indica que el robot no ha jugado esta ronda
     (retract ?rp)
+    ;Indicar en la BH que el robot ya jugo en esta ronda
     (assert (robotPlayed True))
 )
 
