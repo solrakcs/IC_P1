@@ -155,7 +155,6 @@
     (printout t "Robot marca X en casilla (" 1 "," 1 ")" crlf)
 )
 
-;!!! REVISAR: NO PUEDE CAMBIAR DE TURNO AUN
 ;Estrategia Robot en Ronda 2
 (defrule JuegaRobot_3R_Ronda2
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot) (Ronda 2))
@@ -259,7 +258,6 @@
 
 ; ------------------ Reglas para interaccion Robot-Paciente --------------------
 
-; Reutilizable para JM???
 (defrule overTimeDistractedKid
     (declare (salience 10))
     ;Se ejecuta cuando el niño tarda mas de 15 segundos en ingresar (x,y) y es de personalidad distraida
@@ -276,7 +274,7 @@
     ;No se vuelve a solicitar entrada, simplemente se avisa de que tardo mucho en decidir
 )
 
-;Las reglas siguientes se ejecutan antes de que el robot mueva
+;Las reglas siguientes se ejecutan antes de que el robot tome accion
 (defrule warningBeforeTurn_Impacient
     ?con <- (object (is-a CONTROL) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
     ?w <- (warningBeforeDone False)
@@ -320,16 +318,13 @@
     (retract ?ykid)
 )
 
-; !!! REVISAR: Se ejecuta luego de que el niño pone en su turno y antes de cambiar de ronda
 ;Indica que la casilla (x,y) elegida esta ocupada y elimina entrada del usuario para que ingrese un nuevo par (x,y)
-;Esta es reutilizable
 (defrule corregirCasillaOcupada_3R
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid))
     ;Se corrige al recibir input (x,y) del usuario
     ?xkid <- (xKid ?x)
     ?ykid <- (yKid ?y)
     ;Ejecutar regla cuando casilla (x,y) Activada (ocupada) 
-    ; REVISAR: Se ejecuta luego de que el niño pone en su turno y antes de cambiar de ronda
     ?cas <- (object (is-a CASILLA) (x ?x) (y ?y) (Activada True))
     =>
     (printout t "Accion incorrecta! La casilla que has elegido esta ocupada." crlf)
