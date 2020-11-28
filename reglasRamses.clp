@@ -19,8 +19,10 @@
     (make-instance of CONTROL (Eleccion ?elec) (Personalidad ?per) (Turno Robot))
     ;Hecho de control para el warning que se lanza antes de que el robot juegue
     (assert (warningBeforeDone False))
-    ;(assert(robotSymbol X))
-    ;(assert(userSymbol O))
+    ;Hechos de control para verificar que los jugadores ya han marcado casillas en su turno
+    (assert (kidPlayed False))
+    (assert (robotPlayed False))
+    
     (retract ?elec)
     (retract ?per)
 )
@@ -46,23 +48,33 @@
 )
 
 (defrule CondicionVictoria_3R
-    ;Hay que revisar esta verga
-    ; Crear algun atributo que diga X es Robot y O es Usuario
-    ; Para luego hacer match aqui y poder imprimir quien gano
+    ;Esta regla se tiene que ejecutar antes que cualquier otra
+    (salience 100)
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno ?turn) (Ronda ?ron))
-    (test (> ?ron 2))
 
-    ?cas1 <- (object (is-a CASILLA) (x 1) (y 1) (Valor ?va1))
-    ?cas2 <- (object (is-a CASILLA) (x 2) (y 1) (Valor ?va2))
-    ?cas3 <- (object (is-a CASILLA) (x 3) (y 1) (Valor ?va3))
-    ?cas4 <- (object (is-a CASILLA) (x 1) (y 2) (Valor ?va4))
-    ?cas5 <- (object (is-a CASILLA) (x 2) (y 2) (Valor ?va5))
-    ?cas6 <- (object (is-a CASILLA) (x 3) (y 2) (Valor ?va6))
-    ?cas7 <- (object (is-a CASILLA) (x 1) (y 3) (Valor ?va7))
-    ?cas8 <- (object (is-a CASILLA) (x 2) (y 3) (Valor ?va8))
-    ?cas9 <- (object (is-a CASILLA) (x 3) (y 3) (Valor ?va9))
+    ;Hechos de control para verificar que los jugadores ya han marcado casillas en su turno
+    ?kp <- (kidPlayed ?kid)
+    ?rp <- (robotPlayed ?robot)
+    
+    test(or(
+            ;Si es el turno del robot que el robot ya haya marcado en esta ronda
+            (and (eq ?turn Robot) (eq ?robot True))
+            ;Si es el turno del niño que el niño ya haya marcado en esta ronda
+            (and (eq ?turn Kid) (eq ?kid True)))
+    )
 
-    ; Esto hace que se de victoria a casillas vacias
+    ;Leer tablero entero
+    ?cas1 <- (object (is-a CASILLA) (x 1) (y 1) (Valor ?va1) (Activada ?a1))
+    ?cas2 <- (object (is-a CASILLA) (x 2) (y 1) (Valor ?va2) (Activada ?a2))
+    ?cas3 <- (object (is-a CASILLA) (x 3) (y 1) (Valor ?va3) (Activada ?a3))
+    ?cas4 <- (object (is-a CASILLA) (x 1) (y 2) (Valor ?va4) (Activada ?a4))
+    ?cas5 <- (object (is-a CASILLA) (x 2) (y 2) (Valor ?va5) (Activada ?a5))
+    ?cas6 <- (object (is-a CASILLA) (x 3) (y 2) (Valor ?va6) (Activada ?a6))
+    ?cas7 <- (object (is-a CASILLA) (x 1) (y 3) (Valor ?va7) (Activada ?a7))
+    ?cas8 <- (object (is-a CASILLA) (x 2) (y 3) (Valor ?va8) (Activada ?a8))
+    ?cas9 <- (object (is-a CASILLA) (x 3) (y 3) (Valor ?va9) (Activada ?a9))
+
+    ;Se ejecuta si 3 casillas en raya NO VACIAS (Activada = True) tienen el mismo valor
     (test (or 
             (or 
                 (or 
@@ -70,20 +82,37 @@
                         (or
                             (or 
                                 (or 
-                                    (eq ?va7 ?va5 ?va3)
-                                    (eq ?va7 ?va8 ?va9))
-                                (eq ?va4 ?va5 ?va6))
-                            (eq ?va3 ?va6 ?va9))
-                        (eq ?va2 ?va5 ?va8))
-                    (eq ?va1 ?va5 ?va9))
-                (eq ?va1 ?va4 ?va7))
-            (eq ?va1 ?va2 ?va3)))
-
-    ;(test ((eq ?va1 ?va2 ?va3) or (eq ?va1 ?va4 ?va7) or (eq ?va1 ?va5 ?va9) or (eq ?va2 ?va5 ?va8) or 
-    ;    (eq ?va3 ?va6 ?va9) or (eq ?va4 ?va5 ?va6) or (eq ?va7 ?va8 ?va9) or (eq ?va7 ?va5 ?va3)))
+                                    (and (eq ?va7 ?va5 ?va3) (eq ?a7 ?a5 ?a3 True))
+                                    (and (eq ?va7 ?va8 ?va9) (eq ?a7 ?a8 ?a9 True)))
+                                (and (eq ?va4 ?va5 ?va6) (eq ?a4 ?a5 ?a6 True)))
+                            (and (eq ?va3 ?va6 ?va9) (eq ?a3 ?a6 ?a9 True)))
+                        (and (eq ?va2 ?va5 ?va8) (eq ?a2 ?a5 ?a8 True)))
+                    (and (eq ?va1 ?va5 ?va9) (eq ?a1 ?a5 ?a9 True)))
+                (and (eq ?va1 ?va4 ?va7) (eq ?a1 ?a4 ?a7 True)))
+            (and (eq ?va1 ?va2 ?va3) (eq ?a1 ?a2 ?a3 True)))
+    )
     =>
     (printout t "¡El juego ha acabado! El ganador es: " ?turn crlf)
     (halt)
+)
+
+(defrule changeRound
+    ?con <- (object (is-a CONTROL) (Turno Kid) (Ronda ?ron))
+
+    ;Verificar que ambos jugadores ya han tomado acciones en esta ronda
+    ?kp <- (kidPlayed True)
+    ?rp <- (robotPlayed True)
+    =>
+    (modify-instance ?con (Turno Robot) (Ronda (+ ?ron 1)))
+
+    ;Cambio de ronda, indicar en la BH que ningun jugador ha tomado accion en esta ronda aun
+    (retract ?kp)
+    (retract ?rp)
+    ;Hechos de control para verificar que los jugadores ya han tomado accion en su turno en la nueva ronda
+    (assert (kidPlayed False))
+    (assert (robotPlayed False))
+    
+    (printout t "Cambio de ronda: " ?ron " a ronda: " (+ ?ron 1) crlf)
 )
 
 
@@ -97,12 +126,17 @@
     ?w <- (warningBeforeDone ?war)
     (test (or (eq ?p Neutro)
               (eq ?war True)))
+
+    ?rp <- (robotPlayed False)
     =>
     (modify-instance ?cas (x 1) (y 1) (Valor X) (Activada True))
     (modify-instance ?con (Turno Kid))
     (retract ?w)
+    (retract ?rp)
+    (assert (robotPlayed True))
 )
 
+;!!! REVISAR: NO PUEDE CAMBIAR DE TURNO AUN
 ;Estrategia Robot en Ronda 2
 (defrule JuegaRobot_3R_Ronda2
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot) (Ronda 2))
@@ -114,11 +148,17 @@
     ?w <- (warningBeforeDone ?war)
     (test (or (eq ?p Neutro)
               (eq ?war True)))
+
+    ?rp <- (robotPlayed False)
     =>
     ;Colocar X en la casilla (1,3)
     (modify-instance ?cas (Valor X) (Activada True))
+
+    ;NO PUEDE CAMBIAR DE TURNO AUN!!!
     (modify-instance ?con (Turno Kid))
     (retract ?w)
+    (retract ?rp)
+    (assert (robotPlayed True))
 )
 
 ;Estrategia Robot en Ronda 3 o más, o si en la ronda 2 esta ocupada la casilla (2,2)
@@ -126,19 +166,28 @@
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot) (Ronda ?ron))
     ;Elige una casilla al azar
     ?cas <- (object (is-a CASILLA) (Activada False))
-    ?casM <- (object (is-a CASILLA) (x 2) (y 2) (Activada ?a))
-    ;La regla se ejecuta si ronda > 2 OR si la casilla (2,2) esta activada (ocupada)
-    (test (or (> ?ron 2) 
-              (eq ?a True)))
+    ?casM <- (object (is-a CASILLA) (x 2) (y 2) (Activada ?aM))
+    ?cas13 <- (object (is-a CASILLA) (x 1) (y 3) (Activada ?a13))
+    ;La regla se ejecuta si ronda > 2 OR si la casilla (2,2) o la (1,3) esta activada (ocupada)
+    (test (or 
+            (> ?ron 2)
+            (or
+                (eq ?a13 True) 
+                (eq ?aM True)))
+    )
     ;Se ejecuta la accion del robot una vez ha hecho el aviso al niño según su personalidad, o si la personalidad es neutra
     ?w <- (warningBeforeDone ?war)
     (test (or (eq ?p Neutro)
               (eq ?war True)))
+
+    ?rp <- (robotPlayed False)
     =>
     (modify-instance ?cas (Valor X) (Activada True))
     (modify-instance ?con (Turno Kid))
     ;Elimina hecho que indica la realizacion de warning para que se realice de nuevo en la siguiente ronda
     (retract ?w)
+    (retract ?rp)
+    (assert (robotPlayed True))
 )
 
 ; --------------- Reglas de Input del Usuario para 3 en Raya -----------------
@@ -151,6 +200,9 @@
     ; y no ha elegido x e y...
     (not(xKid ?x))
     (not(yKid ?y))
+
+    ;El niño no ha jugado en esta ronda
+    (kidPlayed False)
     =>
     ;...pedirle que introduzca x, y y el tiempo que tarda en responder (sensor del robot)
     (printout t "Ingresa x: " crlf)
@@ -162,18 +214,24 @@
 )
 
 (defrule juegaKid_3R
+    ;Turno del niño
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid) (Ronda ?r))
-    ?cas <- (object (is-a CASILLA) (x ?x) (y ?y) (Activada False))
+    ;El niño ha elegido (x,y) validas (dentro del rango y vacia (no activada))
     ?xkid <- (xKid ?x)
     ?ykid <- (yKid ?y)
+    ?cas <- (object (is-a CASILLA) (x ?x) (y ?y) (Activada False))
+    ;El niño no ha jugado en esta ronda
+    ?kp <- (kidPlayed False)
     =>
-    ;Borra hechos de entrada (x,y) para que se vuelvan a solicitar en la ronda siguiente
+    ;Marca la casilla (x,y)
+    (modify-instance ?cas (Valor O) (Activada true))
+    ;Indica en la BH que el niño ya jugo en esta ronda
+    (retract ?kp)
+    (assert (kidPlayed True))
+
+    ;Borra hechos de entrada del niño (x,y) para que se vuelvan a solicitar en la ronda siguiente
     (retract ?xkid)
     (retract ?ykid)
-    ;Marca la casilla (x,y)
-    (modify-instance ?cas (Valor O) (Activada True))
-    ;Pasa turno a robot y cambia a siguiente ronda
-    (modify-instance ?con (Turno Robot) (Ronda (+ ?r 1)))
 )
 
 ; ------------------ Reglas para interaccion Robot-Paciente --------------------
@@ -195,11 +253,12 @@
     ;No se vuelve a solicitar entrada, simplemente se avisa de que tardo mucho en decidir
 )
 
-; Las reglas siguientes se ejecutan antes de que el robot mueva
+;Las reglas siguientes se ejecutan antes de que el robot mueva
 ; Son reutilizables para JM
 (defrule warningBeforeTurn_Impacient
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
     ?w <- (warningBeforeDone False)
+    (test (> ?ron 0))
     =>
     (printout t " ¡No seas impaciente, espera a que yo mueva primero!")
     (retract ?w)
@@ -209,6 +268,7 @@
 (defrule warningBeforeTurn_Distracted
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Distraido) (Turno Robot) (Ronda ?ron))
     ?w <- (warningBeforeDone False)
+    (test (> ?ron 0))
     =>
     (printout t "¡Recuerda que despues de mi turno te toca a ti!")
     (retract ?w)
@@ -238,15 +298,17 @@
     (retract ?ykid)
 )
 
+; !!! REVISAR: Se ejecuta luego de que el niño pone en su turno y antes de cambiar de ronda
 ;Indica que la casilla (x,y) elegida esta ocupada y elimina entrada del usuario para que ingrese un nuevo par (x,y)
 ;Esta es reutilizable
 (defrule corregirCasillaOcupada_3R
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid))
     ;Se corrige al recibir input (x,y) del usuario
     ?xkid <- (xKid ?x)
     ?ykid <- (yKid ?y)
-    ;Ejecutar regla cuando casilla (x,y) Activada (ocupada)
+    ;Ejecutar regla cuando casilla (x,y) Activada (ocupada) 
+    ; REVISAR: Se ejecuta luego de que el niño pone en su turno y antes de cambiar de ronda
     ?cas <- (object (is-a CASILLA) (x ?x) (y ?y) (Activada True))
-    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid))
     =>
     (printout t "Accion incorrecta! La casilla que has elegido esta ocupada." crlf)
     ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
