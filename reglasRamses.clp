@@ -56,11 +56,12 @@
     ?kp <- (kidPlayed ?kid)
     ?rp <- (robotPlayed ?robot)
     
-    test(or(
+    (test(or
             ;Si es el turno del robot que el robot ya haya marcado en esta ronda
             (and (eq ?turn Robot) (eq ?robot True))
             ;Si es el turno del niño que el niño ya haya marcado en esta ronda
-            (and (eq ?turn Kid) (eq ?kid True)))
+            (and (eq ?turn Kid) (eq ?kid True))
+         )
     )
 
     ;Leer tablero entero
@@ -96,7 +97,9 @@
     (halt)
 )
 
-(defrule changeRound
+
+;MIRAR PARA GENERALIZAR!
+(defrule changeRound_3R
     ?con <- (object (is-a CONTROL) (Turno Kid) (Ronda ?ron))
 
     ;Verificar que ambos jugadores ya han tomado acciones en esta ronda
@@ -356,8 +359,22 @@
 
 (defrule CondicionVictoria_JM
 
+    ;Esta regla se tiene que ejecutar antes que cualquier otra
+    (salience 100)
     ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno ?turn) (Ronda ?ron))
-    (test (> ?ron 2))
+    
+
+    ;Hechos de control para verificar que los jugadores ya han marcado casillas en su turno
+    ?kp <- (kidPlayed ?kid)
+    ?rp <- (robotPlayed ?robot)
+
+    (test(or
+            ;Si es el turno del robot que el robot ya haya marcado en esta ronda
+            (and (eq ?turn Robot) (eq ?robot True))
+            ;Si es el turno del niño que el niño ya haya marcado en esta ronda
+            (and (eq ?turn Kid) (eq ?kid True))
+         )
+    )
 
     ?cas1 <- (object (is-a CASILLA) (x 1) (y 1) (Activada True))
     ?cas2 <- (object (is-a CASILLA) (x 2) (y 1) (Activada True))
@@ -388,6 +405,25 @@
     (halt)
 )
 
+(defrule changeRound_JM
+    ?con <- (object (is-a CONTROL) (Turno Kid) (Ronda ?ron))
+
+    ;Verificar que ambos jugadores ya han tomado acciones en esta ronda
+    ?kp <- (kidPlayed True)
+    ?rp <- (robotPlayed True)
+    =>
+    (modify-instance ?con (Turno Robot) (Ronda (+ ?ron 1)))
+
+    ;Cambio de ronda, indicar en la BH que ningun jugador ha tomado accion en esta ronda aun
+    (retract ?kp)
+    (retract ?rp)
+    ;Hechos de control para verificar que los jugadores ya han tomado accion en su turno en la nueva ronda
+    (assert (kidPlayed False))
+    (assert (robotPlayed False))
+    
+    (printout t "Cambio de ronda: " ?ron " a ronda: " (+ ?ron 1) crlf)
+)
+
 
 ; --------- Estrategias del Robot en Juego de Memoria ----------------
 
@@ -402,11 +438,15 @@
     (test (or (eq ?p Neutro)
                eq ?war True))
     (test (eq ?val1 ?val2))
+
+    ?rp <- (robotPlayed False)
     =>
     (modify-instance ?cas1 (Valor ?val1) (Activada True))
     (modify-instance ?cas2 (Valor ?val2) (Activada True))
     (modify-instance ?con (Turno Kid))
     (retract ?w)
+    (retract ?rp)
+    (assert (robotPlayed True))
 )
 
 
@@ -421,6 +461,9 @@
     ; y no ha elegido x
     (not(xKid1 ?x1))
     (not(xKid2 ?x2))
+
+    ;El niño no ha jugado en esta ronda
+    (kidPlayed False)
     =>
     ;...pedirle que introduzca x, y y el tiempo que tarda en responder (sensor del robot)
     (printout t "Ingresa la primera carta: " crlf)
@@ -438,6 +481,9 @@
     ?cas2 <- (object (is-a CASILLA) (Valor ?val2) (x ?x2) (Activada False))
     ?xkid1 <- (xKid1 ?x1)
     ?xkid2 <- (xKid2 ?x2)
+
+    ;El niño no ha jugado en esta ronda
+    ?kp <- (kidPlayed False)
     =>
     ;Borra hechos de entrada (x) para que se vuelvan a solicitar en la ronda siguiente
     (retract ?xkid1)
@@ -445,8 +491,9 @@
     ;Activa la casillas
     (modify-instance ?cas1 (Valor ?val1) (Activada True))
     (modify-instance ?cas2 (Valor ?val2) (Activada True))
-    ;Pasa turno a robot y cambia a siguiente ronda
-    (modify-instance ?con (Turno Robot) (Ronda (+ ?r 1)))
+    ;Indica en la BH que el niño ya jugo en esta ronda
+    (retract ?kp)
+    (assert (kidPlayed True))
 )
 
 
