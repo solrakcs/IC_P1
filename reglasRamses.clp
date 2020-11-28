@@ -1,3 +1,8 @@
+; !!! COSAS GENERALES
+; 1. Organizar reglas generales y especificas por juego
+; 2. Poner nombres a las instancias
+; 3. Que el idioma sea consistente
+
 ; =================== REGLAS DE COMIENZO DE SESION ==========================
 
 ;El usuario elige juego y personalidad del niño.
@@ -31,7 +36,6 @@
 ; !!! QUEDA:
 ; 1. Revisar estrategia del robot
 ; 2. Agregar mas funcionalidad de interaccion
-
 
 ;Primera regla que se ejecuta cuando el juego elegido es el Tres en Raya. 
 ;Inicializa el tablero para llevar a cabo el juego
