@@ -251,3 +251,93 @@
 
 
 ; ===================== REGLAS JUEGO DE MEMORIA ====================
+
+
+;Primera regla que se ejecuta cuando el juego elegido es el Juego de Memoria. 
+;Inicializa el tablero para llevar a cabo el juego
+(defrule initBoardJM
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Ronda 0))
+    =>
+    (make-instance of CASILLA (x 1) (y 1) (Valor Monkey) (Activada False))
+    (make-instance of CASILLA (x 2) (y 1) (Valor Dog) (Activada False))
+    (make-instance of CASILLA (x 3) (y 1) (Valor Cat) (Activada False))
+    (make-instance of CASILLA (x 4) (y 2) (Valor Horse) (Activada False))
+    (make-instance of CASILLA (x 5) (y 2) (Valor Shark) (Activada False))
+    (make-instance of CASILLA (x 6) (y 2) (Valor Tiger) (Activada False))
+    (make-instance of CASILLA (x 7) (y 3) (Valor Pig) (Activada False))
+    (make-instance of CASILLA (x 8) (y 3) (Valor Dolphin) (Activada False))
+    (make-instance of CASILLA (x 9) (y 3) (Valor Dragon) (Activada False))
+    (make-instance of CASILLA (x 10) (y 1) (Valor Panda) (Activada False))
+    (make-instance of CASILLA (x 11) (y 1) (Valor Bird) (Activada False))
+    (make-instance of CASILLA (x 12) (y 1) (Valor Eagle) (Activada False))
+    (make-instance of CASILLA (x 13) (y 2) (Valor Eagle) (Activada False))
+    (make-instance of CASILLA (x 14) (y 2) (Valor Bird) (Activada False))
+    (make-instance of CASILLA (x 15) (y 2) (Valor Panda) (Activada False))
+    (make-instance of CASILLA (x 16) (y 3) (Valor Dragon) (Activada False))
+    (make-instance of CASILLA (x 17) (y 3) (Valor Dolphin) (Activada False))
+    (make-instance of CASILLA (x 18) (y 3) (Valor Pig) (Activada False))
+    (make-instance of CASILLA (x 19) (y 3) (Valor Tiger) (Activada False))
+    (make-instance of CASILLA (x 20) (y 3) (Valor Shark) (Activada False))
+    (make-instance of CASILLA (x 21) (y 3) (Valor Horse) (Activada False))
+    (make-instance of CASILLA (x 22) (y 3) (Valor Cat) (Activada False))
+    (make-instance of CASILLA (x 23) (y 3) (Valor Dog) (Activada False))
+    (make-instance of CASILLA (x 24) (y 3) (Valor Monkey) (Activada False))
+    (modify-instance ?con (Ronda 1))
+)
+
+
+(defrule CondicionVictoria_JM
+
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno ?turn) (Ronda ?ron))
+    (test (> ?ron 2))
+
+    ?cas1 <- (object (is-a CASILLA) (x 1) (y 1) (Activada True))
+    ?cas2 <- (object (is-a CASILLA) (x 2) (y 1) (Activada True))
+    ?cas3 <- (object (is-a CASILLA) (x 3) (y 1) (Activada True))
+    ?cas4 <- (object (is-a CASILLA) (x 4) (y 1) (Activada True))
+    ?cas5 <- (object (is-a CASILLA) (x 5) (y 1) (Activada True))
+    ?cas6 <- (object (is-a CASILLA) (x 6) (y 1) (Activada True))
+    ?cas7 <- (object (is-a CASILLA) (x 7) (y 1) (Activada True))
+    ?cas8 <- (object (is-a CASILLA) (x 8) (y 1) (Activada True))
+    ?cas9 <- (object (is-a CASILLA) (x 9) (y 1) (Activada True))
+    ?cas10 <- (object (is-a CASILLA) (x 10) (y 1) (Activada True))
+    ?cas11 <- (object (is-a CASILLA) (x 11) (y 1) (Activada True))
+    ?cas12 <- (object (is-a CASILLA) (x 12) (y 1) (Activada True))
+    ?cas13 <- (object (is-a CASILLA) (x 13) (y 1) (Activada True))
+    ?cas14 <- (object (is-a CASILLA) (x 14) (y 1) (Activada True))
+    ?cas15 <- (object (is-a CASILLA) (x 15) (y 1) (Activada True))
+    ?cas16 <- (object (is-a CASILLA) (x 16) (y 1) (Activada True))
+    ?cas17 <- (object (is-a CASILLA) (x 17) (y 1) (Activada True))
+    ?cas18 <- (object (is-a CASILLA) (x 18) (y 1) (Activada True))
+    ?cas19 <- (object (is-a CASILLA) (x 19) (y 1) (Activada True))
+    ?cas20 <- (object (is-a CASILLA) (x 20) (y 1) (Activada True))
+    ?cas21 <- (object (is-a CASILLA) (x 21) (y 1) (Activada True))
+    ?cas22 <- (object (is-a CASILLA) (x 22) (y 1) (Activada True))
+    ?cas23 <- (object (is-a CASILLA) (x 23) (y 1) (Activada True))
+    ?cas24 <- (object (is-a CASILLA) (x 24) (y 1) (Activada True))
+    =>
+    (printout t "¡El juego ha acabado! El ganador es: " ?turn crlf)
+    (halt)
+)
+
+
+; --------- Estrategias del Robot en Juego de Memoria ----------------
+
+
+;Estrategia Robot en todas las rondas. Lo hace al azar
+(defrule JuegaRobot_JM_Rondas
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Personalidad ?p) (Turno Robot) (Ronda 1))
+    ?cas1 <- (object (is-a CASILLA) (Valor ?val1) (Activada False))
+    ?cas2 <- (object (is-a CASILLA) (Valor ?val2) (Activada False))
+    ;Se ejecuta la accion del robot una vez ha hecho el aviso al niño según su personalidad, o si la personalidad es neutra
+    ?w <- (warningBeforeDone ?war)
+    (test (or (eq ?p Neutro)
+               eq ?war True))
+    (test (eq ?val1 ?val2))
+    =>
+    (modify-instance ?cas1 (Valor ?val1) (Activada True))
+    (modify-instance ?cas2 (Valor ?val2) (Activada True))
+    (modify-instance ?con (Turno Kid))
+    (retract ?w)
+)
+
