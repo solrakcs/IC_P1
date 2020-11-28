@@ -89,8 +89,7 @@
 
 ;Estrategia Robot en Ronda 1
 (defrule JuegaRobot_3R_Ronda1
-    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Robot) (Ronda ?r))
-    (test (= ?r 1))
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot) (Ronda 1))
     ?cas <- (object (is-a CASILLA) (x 1) (y 1) (Activada False))
     ;Se ejecuta la accion del robot una vez ha hecho el aviso al niño según su personalidad, o si la personalidad es neutra
     ?w <- (warningBeforeDone ?war)
@@ -99,32 +98,31 @@
     =>
     (modify-instance ?cas (x 1) (y 1) (Valor X) (Activada True))
     (modify-instance ?con (Turno Kid))
-    ;(Ronda (+ ?r 1))
     (retract ?w)
 )
 
 ;Estrategia Robot en Ronda 2
 (defrule JuegaRobot_3R_Ronda2
-    ;Si el niño todavia no ha colocado una O en la casilla del medio (2,2) 
-    ;Entonces colocar una X en la esquina (1,3)
-    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Robot) (Ronda ?r))
-    (test (= ?r 2))
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot) (Ronda 2))
+    ;Si el niño todavia no ha colocado una O en la casilla del medio (2,2).. 
     ?casM <- (object (is-a CASILLA) (x 2) (y 2) (Activada False))
+    ;..ver si la casilla (1,3) esta vacia
     ?cas <- (object (is-a CASILLA) (x 1) (y 3) (Activada False))
     ;Se ejecuta la accion del robot una vez ha hecho el aviso al niño según su personalidad, o si la personalidad es neutra
     ?w <- (warningBeforeDone ?war)
     (test (or (eq ?p Neutro)
               (eq ?war True)))
     =>
+    ;Colocar X en la casilla (1,3)
     (modify-instance ?cas (Valor X) (Activada True))
     (modify-instance ?con (Turno Kid))
-    ;(Ronda (+ ?r 1))
     (retract ?w)
 )
 
 ;Estrategia Robot en Ronda 3 o más, o si en la ronda 2 esta ocupada la casilla (2,2)
 (defrule JuegaRobot_3R_RRondas
-    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Robot) (Ronda ?ron))
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot) (Ronda ?ron))
+    ;Elige una casilla al azar
     ?cas <- (object (is-a CASILLA) (Activada False))
     ?casM <- (object (is-a CASILLA) (x 2) (y 2) (Activada ?a))
     ;La regla se ejecuta si ronda > 2 OR si la casilla (2,2) esta activada (ocupada)
@@ -137,7 +135,7 @@
     =>
     (modify-instance ?cas (Valor X) (Activada True))
     (modify-instance ?con (Turno Kid))
-    ; (Ronda (+ ?ron 1))
+    ;Elimina hecho que indica la realizacion de warning para que se realice de nuevo en la siguiente ronda
     (retract ?w)
 )
 
@@ -152,7 +150,7 @@
     (not(xKid ?x))
     (not(yKid ?y))
     =>
-    ; pedirle que introduzca x, y y el tiempo que tarda en responder (sensor del robot)
+    ;...pedirle que introduzca x, y y el tiempo que tarda en responder (sensor del robot)
     (printout t "Ingresa x: " crlf)
     (assert (xKid (read)))
     (printout t "Ingresa y: " crlf)
@@ -167,17 +165,22 @@
     ?xkid <- (xKid ?x)
     ?ykid <- (yKid ?y)
     =>
+    ;Borra hechos de entrada (x,y) para que se vuelvan a solicitar en la ronda siguiente
     (retract ?xkid)
     (retract ?ykid)
+    ;Marca la casilla (x,y)
     (modify-instance ?cas (Valor O) (Activada true))
+    ;Pasa turno a robot y cambia a siguiente ronda
     (modify-instance ?con (Turno Robot) (Ronda (+ ?r 1)))
 )
 
 ; ------------------ Reglas para interaccion Robot-Paciente --------------------
 
+; Reutilizable para JM
 (defrule overTimeDistractedKid
+    ;Se ejecuta cuando el niño tarda mas de 15 segundos en ingresar (x,y) y es de personalidad distraida
     ?con <- (object (is-a CONTROL) (Turno Kid) (Personalidad Distraido) (Cronometro ?c))
-    (test (> ?c 5))
+    (test (> ?c 15))
     ;Se ejecuta luego de recibir input (x,y) del usuario
     (xKid ?x)
     (yKid ?y)
@@ -187,9 +190,11 @@
     (salience 10)
     =>
     (printout t "Has tardado mucho tiempo en elegir! Tienes que concentrarte mejor." crlf)
+    ;No se vuelve a solicitar entrada, simplemente se avisa de que tardo mucho en decidir
 )
 
 ;Las reglas siguientes se ejecutan antes de que el robot mueva
+; Son reutilizables para JM
 (defrule warningBeforeTurn_Impacient
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
     =>
@@ -204,7 +209,8 @@
     (assert (warningBeforeDone True))
 )
 
-(defrule corregirCasillaOutOfBounds
+;Indica que la casilla esta fuera de rango y elimina la entrada del usurio para obligarle a ingresar un nuevo par (x,y)
+(defrule corregirCasillaOutOfBounds_3R
     ;Se corrige al recibir input (x,y) del usuario
     ?xkid <- (xKid ?x)
     ?ykid <- (yKid ?y)
@@ -226,6 +232,8 @@
     (retract ?ykid)
 )
 
+;Indica que la casilla (x,y) elegida esta ocupada y elimina entrada del usuario para que ingrese un nuevo par (x,y)
+;Esta es reutilizable
 (defrule corregirCasillaOcupada_3R
     ;Se corrige al recibir input (x,y) del usuario
     ?xkid <- (xKid ?x)
