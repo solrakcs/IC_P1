@@ -10,12 +10,6 @@
         (type SYMBOL) 
         (allowed-symbols Kid Robot)
         (default Robot))
-    (slot ScoreRobot 
-        (type INTEGER) 
-        (default 0))
-    (slot ScoreKid 
-        (type INTEGER) 
-        (default 0))
     (slot Ronda 
         (type INTEGER) 
         (default 0))
