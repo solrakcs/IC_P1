@@ -70,8 +70,9 @@
 ; ----------- Reglas Generales de Control durante Sesion -------
 
 
-;Reinicia hechos de warning, kidPlayed y robotPlayed a False, y va a la siguiente ronda
+;Reinicia hechos de warning, kidPlayed y robotPlayed a False, y va a la siguiente ronda tras terminar el turno del niño
 (defrule changeRound
+    ;Comprobar que sea el turno del niño
     ?con <- (object (is-a CONTROL) (Turno Kid) (Ronda ?ron))
 
     ;Verificar que ambos jugadores ya han tomado acciones en esta ronda
@@ -96,13 +97,17 @@
     (printout t "Cambio de ronda: " ?ron " a ronda: " (+ ?ron 1) crlf)
 )
 
+;Regla para efectuar cambio de turno de robot a niño
 (defrule changeTurn
     ?con <- (object (is-a CONTROL) (Personalidad ?p) (Turno Robot))
+    ;Se ejecuta cuando se indica en la BH que el el robot ya ha jugado
     ?rp <- (robotPlayed True)
     =>
+    ;Cambiar la instancia de control indicando que es el turno del niño
     (modify-instance ?con (Turno Kid))
+    ;Indicar que no se ha realizado el warning por motivos de tiempo
     (assert (timeWarningDone False))
-    (printout t "Cambio de turno: Termina robot, turno del niño" crlf)
+    (printout t "Ya he terminado! Te toca jugar." crlf)
 )
 
 ; --------- Reglas Generales de Interaccion Robot-Paciente -------
