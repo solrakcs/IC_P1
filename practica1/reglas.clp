@@ -148,11 +148,14 @@
 
 ;Las reglas siguientes se ejecutan antes de que el robot tome accion
 (defrule warningBeforeTurn_Impacient
+    ;Turno del robot
     ?con <- (object (is-a CONTROL) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
+    ;Comprueba que no se ha realizado el aviso correspondiente en esta ronda
     ?w <- (warningBeforeDone False)
     (test (> ?ron 0))
-    =>
+    => 
     (printout t "No seas impaciente, espera a que yo mueva primero!" crlf)
+    ;Indica en la BH que ya se realizó el aviso
     (retract ?w)
     (assert (warningBeforeDone True))
 )
@@ -543,7 +546,7 @@
 ; --------- Estrategias del Robot en Juego de Memoria ----------------
 
 
-;Estrategia Robot en todas las rondas. Lo hace al azar
+;Estrategia Robot en todas las rondas.
 (defrule JuegaRobot_JM_Rondas
     ?con <- (object (is-a CONTROL) (Eleccion JM) (Personalidad ?p) (Turno Robot))
 
