@@ -1,0 +1,103 @@
+CLIPS> (run)
+FIRE    1 pickGameNPersonality: *,*
+Hola! Estas listo para jugar conmigo?
+Que quieres jugar hoy? Elige entre 3R (Para 3 en Raya) y JM (Para Juego de Memoria): 
+3R
+==> f-1     (eleccion_usuario 3R)
+Como es tu personalidad? (Neutro, Distraido, Impaciente): 
+Distraido
+==> f-2     (personalidad_usuario Distraido)
+FIRE    2 readGameNPersonality: f-1,f-2
+==> f-3     (warningBeforeDone False)
+==> f-4     (kidPlayed False)
+==> f-5     (robotPlayed False)
+Has elegido el juego: 3R y por lo que me cuentan eres un chicx Distraido. Dame un segundo para preparar todo!
+FIRE    3 initBoard3R: [gen1]
+El tablero esta listo, empezamos el juego de Tres en Raya!
+FIRE    4 warningBeforeTurn_Distracted: [gen1],f-3
+Recuerda que despues de mi turno te toca a ti!
+<== f-3     (warningBeforeDone False)
+==> f-6     (warningBeforeDone True)
+FIRE    5 JuegaRobot_3R_Ronda1: [gen1],[gen2],f-6,f-5
+<== f-5     (robotPlayed False)
+==> f-7     (robotPlayed True)
+Robot marca X en casilla (1,1)
+FIRE    6 changeTurn: [gen1],f-7
+==> f-8     (timeWarningDone False)
+Ya he terminado! Te toca jugar.
+FIRE    7 inputKid_3R: [gen1],*,*,f-4
+Ingresa x: 
+1
+==> f-9     (xKid 1)
+Ingresa y: 
+3
+==> f-10    (yKid 3)
+Ingresa el tiempo tomado (en segundos):
+20
+FIRE    8 overTimeDistractedKid: [gen1],f-9,f-10,f-8
+Has tardado mucho tiempo en elegir! Tienes que concentrarte mejor.
+<== f-8     (timeWarningDone False)
+==> f-11    (timeWarningDone True)
+FIRE    9 juegaKid_3R: [gen1],f-9,f-10,[gen8],f-4,f-11
+<== f-4     (kidPlayed False)
+==> f-12    (kidPlayed True)
+<== f-9     (xKid 1)
+<== f-10    (yKid 3)
+<== f-11    (timeWarningDone True)
+Has marcado la casilla (1,3) correctamente!
+FIRE   10 changeRound: [gen1],f-12,f-7,f-6
+<== f-12    (kidPlayed True)
+<== f-7     (robotPlayed True)
+==> f-13    (kidPlayed False)
+==> f-14    (robotPlayed False)
+<== f-6     (warningBeforeDone True)
+==> f-15    (warningBeforeDone False)
+Cambio de ronda: 1 a ronda: 2
+FIRE   11 warningBeforeTurn_Distracted: [gen1],f-15
+Recuerda que despues de mi turno te toca a ti!
+<== f-15    (warningBeforeDone False)
+==> f-16    (warningBeforeDone True)
+FIRE   12 JuegaRobot_3R_RRondas: [gen1],[gen3],[gen6],[gen8],f-16,f-14
+<== f-14    (robotPlayed False)
+==> f-17    (robotPlayed True)
+Robot marca X en casilla (2,1)
+FIRE   13 changeTurn: [gen1],f-17
+==> f-18    (timeWarningDone False)
+Ya he terminado! Te toca jugar.
+FIRE   14 inputKid_3R: [gen1],*,*,f-13
+Ingresa x: 
+2
+==> f-19    (xKid 2)
+Ingresa y: 
+2
+==> f-20    (yKid 2)
+Ingresa el tiempo tomado (en segundos):
+5
+FIRE   15 juegaKid_3R: [gen1],f-19,f-20,[gen6],f-13,f-18
+<== f-13    (kidPlayed False)
+==> f-21    (kidPlayed True)
+<== f-19    (xKid 2)
+<== f-20    (yKid 2)
+<== f-18    (timeWarningDone False)
+Has marcado la casilla (2,2) correctamente!
+FIRE   16 changeRound: [gen1],f-21,f-17,f-16
+<== f-21    (kidPlayed True)
+<== f-17    (robotPlayed True)
+==> f-22    (kidPlayed False)
+==> f-23    (robotPlayed False)
+<== f-16    (warningBeforeDone True)
+==> f-24    (warningBeforeDone False)
+Cambio de ronda: 2 a ronda: 3
+FIRE   17 warningBeforeTurn_Distracted: [gen1],f-24
+Recuerda que despues de mi turno te toca a ti!
+<== f-24    (warningBeforeDone False)
+==> f-25    (warningBeforeDone True)
+FIRE   18 JuegaRobot_3R_RRondas: [gen1],[gen4],[gen6],[gen8],f-25,f-23
+<== f-23    (robotPlayed False)
+==> f-26    (robotPlayed True)
+Robot marca X en casilla (3,1)
+FIRE   19 CondicionVictoria_3R: [gen1],f-22,f-26,[gen2],[gen3],[gen4],[gen5],[gen6],[gen7],[gen8],[gen9],[gen10]
+==> f-27    (winner Robot)
+FIRE   20 winner3RRobot_DistractedKid: f-27,f-2
+Lo has hecho genial! Pero puedes hacerlo mejor si te enfocas mas en el juego. Seguro que la proxima me ganas
+Vuelve a activarme cuando quieras intentarlo de nuevo. Adios!
