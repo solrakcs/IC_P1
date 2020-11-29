@@ -1,16 +1,16 @@
-; !!! COSAS GENERALES
-; 1. Organizar reglas generales y especificas por juego
-; 2. Poner nombres a las instancias
-; 3. Que el idioma sea consistente
+; =================== REGLAS GENERALES ==========================
 
-; =================== REGLAS DE COMIENZO DE SESION ==========================
+; ---- Reglas Generales de Configuracion Inicial de la Sesion ----
 
 ;El usuario elige juego y personalidad del niño.
 ;La entrada se almancena en los hechos correspondientes
 (defrule pickGameNPersonality
+    ;Ejecutar cuando no existan estos hechos que representan las elecciones del niño/usuario
+    (not(eleccion_usuario ?elec))
+    (not(personalidad_usuario ?per))
     =>
     (printout t "Hola! Estas listo para jugar conmigo?" crlf)
-    (printout t "Que quieres jugar hoy? Elige entre 3R y JM: " crlf)
+    (printout t "Que quieres jugar hoy? Elige entre 3R (Para 3 en Raya) y JM (Para Juego de Memoria): " crlf)
     (assert (eleccion_usuario (read)))
     (printout t "Como es tu personalidad? (Neutro, Distraido, Impaciente): " crlf)
     (assert (personalidad_usuario (read)))
@@ -20,8 +20,20 @@
 (defrule readGameNPersonality
     (eleccion_usuario ?elec)
     (personalidad_usuario ?per)
+
+    ;Comprobar que las entradas del usuario sean correctas
+    (test (and
+            (or 
+                (eq ?elec 3R) 
+                (eq ?elec JM)) 
+            (or 
+                (or
+                    (eq ?per Distraido)
+                    (eq ?per Impaciente)) 
+                (eq ?per Neutro)))
+    )
+
     =>
-    ; !!! PONERLE NOMBREEEE !!!
     (make-instance of CONTROL (Eleccion ?elec) (Personalidad ?per) (Turno Robot))
     ;Hecho de control para el warning que se lanza antes de que el robot juegue
     (assert (warningBeforeDone False))
@@ -31,11 +43,132 @@
     (printout t "Has elegido el juego: " ?elec " y por lo que me cuentan eres un chicx " ?per ". Dame un segundo para preparar todo!" crlf)
 )
 
+;Regla para evitar entradas no legales por parte del usuario y solicitar que introduzca sus opciones de nuevo
+(defrule incorrectChoices
+    ?e <- (eleccion_usuario ?elec)
+    ?p <- (personalidad_usuario ?per)
+
+    ;Si las entradas del usuario son incorrectass
+    (not(test (and
+            (or 
+                (eq ?elec 3R) 
+                (eq ?elec JM)) 
+            (or 
+                (or
+                    (eq ?per Distraido)
+                    (eq ?per Impaciente)) 
+                (eq ?per Neutro)))
+    ))
+
+    =>
+    (printout t "Las opciones que has elegido son incorrectas, por favor elige un juego entre 3R (Para 3 en Raya) o JM (Para el juego de memoria), y una personalidad entre Neutro, Distraido o Impaciente" crlf)
+    ;Eliminar hechos de eleccion de juego y personalidad de la BH para que vuelvan a ser solicitados
+    (retract ?e)
+    (retract ?p)
+)
+
+; ----------- Reglas Generales de Control durante Sesion -------
+
+
+;Reinicia hechos de warning, kidPlayed y robotPlayed a False, y va a la siguiente ronda
+(defrule changeRound
+    ?con <- (object (is-a CONTROL) (Turno Kid) (Ronda ?ron))
+
+    ;Verificar que ambos jugadores ya han tomado acciones en esta ronda
+    ?kp <- (kidPlayed True)
+    ?rp <- (robotPlayed True)
+
+    ;Almacenar hecho warning de antes de que juegue el robot para modificaciones
+    ?w <- (warningBeforeDone ?war)
+    =>
+    ;Da turno al robot, va a la siguiente ronda y resetea el atributo de segunda oportunidad
+    (modify-instance ?con (Turno Robot) (Ronda (+ ?ron 1)) (SecondChance False))
+
+    ;Cambio de ronda, indicar en la BH que ningun jugador ha tomado accion en esta ronda aun
+    (retract ?kp)
+    (retract ?rp)
+    (assert (kidPlayed False))
+    (assert (robotPlayed False))
+    ;Indicar que no se ha hecho el warning que se lanza antes de que juegue el robot en esta ronda
+    (retract ?w)
+    (assert (warningBeforeDone False))
+    
+    (printout t "Cambio de ronda: " ?ron " a ronda: " (+ ?ron 1) crlf)
+)
+
+(defrule changeTurn
+    ?con <- (object (is-a CONTROL) (Personalidad ?p) (Turno Robot))
+    ?rp <- (robotPlayed True)
+    =>
+    (modify-instance ?con (Turno Kid))
+    (assert (timeWarningDone False))
+    (printout t "Cambio de turno: Termina robot, turno del niño" crlf)
+)
+
+; --------- Reglas Generales de Interaccion Robot-Paciente -------
+
+(defrule overTimeDistractedKid
+    ;(declare (salience 10))
+    ;Se ejecuta cuando el niño tarda mas de 15 segundos en ingresar (x,y) y es de personalidad distraida
+    ?con <- (object (is-a CONTROL) (Turno Kid) (Personalidad Distraido) (Cronometro ?c))
+    (test (>= ?c 15))
+    ;Se ejecuta luego de recibir input (x,y) del usuario
+    ?xkid <- (xKid ?x)
+    ?ykid <- (yKid ?y)
+    ;Comprobar que en la BH se indica que no se ha realizado el warning por motivos de tiempo
+    ?w <- (timeWarningDone False)
+    =>
+    ;No se vuelve a solicitar entrada, simplemente se avisa de que tardo mucho en decidir
+    (printout t "Has tardado mucho tiempo en elegir! Tienes que concentrarte mejor." crlf)
+    ;Indicar en la BH que ya se realizo el warning 
+    (retract ?w)
+    (assert (timeWarningDone True))
+)
+
+(defrule tooFastImpacientKid
+    ;(declare (salience 10))
+    ;Se ejecuta cuando el niño tarda menos de 3 segundos en ingresar (x,y) y es de personalidad impaciente
+    ?con <- (object (is-a CONTROL) (Turno Kid) (Personalidad Impaciente) (Cronometro ?c))
+    (test (<= ?c 3))
+    ;Se ejecuta luego de recibir input (x,y) del usuario
+    ?xkid <- (xKid ?x)
+    ?ykid <- (yKid ?y)
+    ;Comprobar que en la BH se indica que no se ha realizado el warning por motivos de tiempo
+    ?w <- (timeWarningDone False)
+    =>
+    ;No se vuelve a solicitar entrada, simplemente se avisa de que tardo mucho en decidir
+    (printout t "Oye! Relaaajate. Has elegido muy rapido! Se que eres muy avispadx, pero trata de disfrutar este tiempo de juego y piensa bien tus jugadas." crlf)
+    ;Indicar en la BH que ya se realizo el warning 
+    (retract ?w)
+    (assert (timeWarningDone True))
+)
+
+;Las reglas siguientes se ejecutan antes de que el robot tome accion
+(defrule warningBeforeTurn_Impacient
+    ?con <- (object (is-a CONTROL) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
+    ?w <- (warningBeforeDone False)
+    (test (> ?ron 0))
+    =>
+    (printout t "No seas impaciente, espera a que yo mueva primero!" crlf)
+    (retract ?w)
+    (assert (warningBeforeDone True))
+)
+
+(defrule warningBeforeTurn_Distracted
+    ?con <- (object (is-a CONTROL) (Personalidad Distraido) (Turno Robot) (Ronda ?ron))
+    ?w <- (warningBeforeDone False)
+    (test (> ?ron 0))
+    =>
+    (printout t "Recuerda que despues de mi turno te toca a ti!" crlf)
+    (retract ?w)
+    (assert (warningBeforeDone True))
+)
+
 ; ===================== REGLAS TRES EN RAYA ====================
 
 ; !!! QUEDA:
 ; 1. Revisar estrategia del robot
-; 2. Agregar mas funcionalidad de interaccion
+; 2. Agregar funcionalidad al perder
 
 ;Primera regla que se ejecuta cuando el juego elegido es el Tres en Raya. 
 ;Inicializa el tablero para llevar a cabo el juego
@@ -52,6 +185,7 @@
     (make-instance of CASILLA (x 2) (y 3))
     (make-instance of CASILLA (x 3) (y 3))
     (modify-instance ?con (Ronda 1))
+    (printout t "El tablero esta listo, empezamos el juego de Tres en Raya!" crlf)
 )
 
 (defrule CondicionVictoria_3R
@@ -99,43 +233,11 @@
             (and (eq ?va1 ?va2 ?va3) (eq ?a1 ?a2 ?a3 True)))
     )
     =>
-    (printout t "El juego ha acabado! El ganador es: " ?turn crlf)
-    (halt)
+    ;Indicar en la BH el ganador de la partida
+    (assert (winner ?turn))
+    ;Eliminar instancia de control para que no se ejecuten otras reglas del juego
+    (unmake-instance ?con)
 )
-
-;Reinicia hechos de warning, kidPlayed y robotPlayed a False, y va a la siguiente ronda
-(defrule changeRound
-    ?con <- (object (is-a CONTROL) (Turno Kid) (Ronda ?ron))
-
-    ;Verificar que ambos jugadores ya han tomado acciones en esta ronda
-    ?kp <- (kidPlayed True)
-    ?rp <- (robotPlayed True)
-
-    ;Almacenar hecho warning de antes de que juegue el robot para modificaciones
-    ?w <- (warningBeforeDone ?war)
-    =>
-    (modify-instance ?con (Turno Robot) (Ronda (+ ?ron 1)))
-
-    ;Cambio de ronda, indicar en la BH que ningun jugador ha tomado accion en esta ronda aun
-    (retract ?kp)
-    (retract ?rp)
-    (assert (kidPlayed False))
-    (assert (robotPlayed False))
-    ;Indicar que no se ha hecho el warning en esta ronda
-    (retract ?w)
-    (assert (warningBeforeDone False))
-    
-    (printout t "Cambio de ronda: " ?ron " a ronda: " (+ ?ron 1) crlf)
-)
-
-(defrule changeTurn
-    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Personalidad ?p) (Turno Robot))
-    ?rp <- (robotPlayed True)
-    =>
-    (modify-instance ?con (Turno Kid))
-    (printout t "Cambio de turno: Termina robot, turno del niño" crlf)
-)
-
 
 ; --------- Estrategias del Robot en 3 en Raya ----------------
 
@@ -233,19 +335,35 @@
     (assert (xKid (read)))
     (printout t "Ingresa y: " crlf)
     (assert (yKid (read)))
-    (printout t "Ingresa el tiempo tomado:" crlf)
+    (printout t "Ingresa el tiempo tomado (en segundos):" crlf)
     (modify-instance ?con (Cronometro (read)))
 )
 
 (defrule juegaKid_3R
     ;Turno del niño
-    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid) (Ronda ?r))
+    ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid) (Ronda ?r) (Cronometro ?c) (Personalidad ?p))
     ;El niño ha elegido (x,y) validas (dentro del rango y vacia (no activada))
     ?xkid <- (xKid ?x)
     ?ykid <- (yKid ?y)
     ?cas <- (object (is-a CASILLA) (x ?x) (y ?y) (Activada False))
     ;El niño no ha jugado en esta ronda
     ?kp <- (kidPlayed False)
+
+    ?tw <- (timeWarningDone ?war)
+
+    ;Se ejecutara la regla cuando:
+    (test (or
+            (or
+                (or
+                    ;O bien, el niño es distraido pero tomo una decision en menos de 15 segundos
+                    (and (eq ?p Distraido) (< ?c 15))
+                    ;O bien, el niño es impaciente pero penso durante mas de 3 segundos para tomar su decision
+                    (and (eq ?p Impaciente) (> ?c 3)))
+                ; O bien, el warning por motivos de tiempo ya se ha hecho
+                (eq ?war True))
+            ;O bien, el niño es de personalidad Neutro, por lo que no se necesita hacer un warning por motivos de tiempo
+            (eq ?p Neutro))
+    )
     =>
     ;Marca la casilla (x,y)
     (modify-instance ?cas (Valor O) (Activada True))
@@ -257,47 +375,13 @@
     (retract ?xkid)
     (retract ?ykid)
 
+    ;Eliminar de la BH el hecho del warning por motivos de tiempo, pues se reseteara al cambiar el turno al niño en la proxima ronda
+    (retract ?tw)
+
     (printout t "Has marcado la casilla (" ?x "," ?y ") correctamente!" crlf) 
 )
 
-; ------------------ Reglas para interaccion Robot-Paciente --------------------
-
-(defrule overTimeDistractedKid
-    (declare (salience 10))
-    ;Se ejecuta cuando el niño tarda mas de 15 segundos en ingresar (x,y) y es de personalidad distraida
-    ?con <- (object (is-a CONTROL) (Turno Kid) (Personalidad Distraido) (Cronometro ?c))
-    (test (> ?c 15))
-    ;Se ejecuta luego de recibir input (x,y) del usuario
-    ?xkid <- (xKid ?x)
-    ?ykid <- (yKid ?y)
-    ;!!!! Ver como dar prioridad sobre juegaKid_3R y corregirAccionIncorrecta
-    ;Por ahora prioridad con salience, pero ver si se puede implementar otra cosa
-    ;Podria implementar un hecho warningDistracted
-    =>
-    (printout t "Has tardado mucho tiempo en elegir! Tienes que concentrarte mejor." crlf)
-    ;No se vuelve a solicitar entrada, simplemente se avisa de que tardo mucho en decidir
-)
-
-;Las reglas siguientes se ejecutan antes de que el robot tome accion
-(defrule warningBeforeTurn_Impacient
-    ?con <- (object (is-a CONTROL) (Personalidad Impaciente) (Turno Robot) (Ronda ?ron))
-    ?w <- (warningBeforeDone False)
-    (test (> ?ron 0))
-    =>
-    (printout t "No seas impaciente, espera a que yo mueva primero!" crlf)
-    (retract ?w)
-    (assert (warningBeforeDone True))
-)
-
-(defrule warningBeforeTurn_Distracted
-    ?con <- (object (is-a CONTROL) (Personalidad Distraido) (Turno Robot) (Ronda ?ron))
-    ?w <- (warningBeforeDone False)
-    (test (> ?ron 0))
-    =>
-    (printout t "Recuerda que despues de mi turno te toca a ti!" crlf)
-    (retract ?w)
-    (assert (warningBeforeDone True))
-)
+; ------------------ Reglas para interaccion Robot-Paciente en 3R --------------------
 
 ;Indica que la casilla esta fuera de rango y elimina la entrada del usurio para obligarle a ingresar un nuevo par (x,y)
 (defrule corregirCasillaOutOfBounds_3R
@@ -306,20 +390,23 @@
     ?ykid <- (yKid ?y)
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid))
     
-    ;Ejecutar regla si x > 3 OR x < 1 OR y > 3 OR y < 1
-    (test (or 
-            (or 
-                (or 
-                    (< ?y 1)
-                    (> ?y 3))
-                (< ?x 1))
-            (> ?x 3)))
+    ;Ejecutar regla si no se cumple que: x,y <= 3 AND x,y >= 1
+    (not(test (and
+                (and (>= ?x 1) (<= ?x 3))
+                (and (>= ?y 1) (<= ?y 3)))
+    ))
+
+    ;Almacenar hecho en variable para borrarlo luego
+    ?tw <- (timeWarningDone ?war)
 
     =>
     (printout t "Accion incorrecta! La casilla que has elegido esta fuera de rango." crlf)
     ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
     (retract ?xkid)
     (retract ?ykid)
+    ;Como se va a solicitar de nuevo una entrada, indicar que el warning por motivos de tiempo no se ha realizado
+    (retract ?tw)
+    (assert (timeWarningDone False))
 )
 
 ;Indica que la casilla (x,y) elegida esta ocupada y elimina entrada del usuario para que ingrese un nuevo par (x,y)
@@ -330,23 +417,48 @@
     ?ykid <- (yKid ?y)
     ;Ejecutar regla cuando casilla (x,y) Activada (ocupada) 
     ?cas <- (object (is-a CASILLA) (x ?x) (y ?y) (Activada True))
+
+    ;Almacenar hecho en variable para borrarlo luego
+    ?tw <- (timeWarningDone ?war)
     =>
     (printout t "Accion incorrecta! La casilla que has elegido esta ocupada." crlf)
     ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
     (retract ?xkid)
     (retract ?ykid)
+    ;Como se va a solicitar de nuevo una entrada, indicar que el warning por motivos de tiempo no se ha realizado
+    (retract ?tw)
+    (assert (timeWarningDone False))
 )
 
-
+;Regla para dar recomendaciones a un niño distraido cuando pierde en 3R
+(defrule winner3RRobot_DistractedKid
+    (winner Robot)
+    (personalidad_usuario Distraido)
+    =>
+    (printout t "Lo has hecho genial! Pero puedes hacerlo mejor si te enfocas mas en el juego. Seguro que la proxima me ganas" crlf)
+    (printout t "Vuelve a activarme cuando quieras intentarlo de nuevo. Adios!")
+    (halt)
+)
+;Regla para dar recomendaciones a un niño impaciente cuando pierde en 3R
+(defrule winner3RRobot_ImpacienteKid
+    (winner Robot)
+    (personalidad_usuario Impaciente)
+    =>
+    (printout t "Buen trabajo! Solo necesitas tener un poco mas de paciencia y pensar con mas calma. Seguro que la proxima me ganas" crlf)
+    (printout t "Vuelve a activarme cuando quieras intentarlo de nuevo. Adios!")
+    (halt)
+)
+;Regla para felicitar a un niño cuando gana en 3R
+(defrule winner3RKid
+    (winner Kid)
+    (personalidad_usuario ?p)
+    =>
+    (printout t "FELICIDADES! Has ganado! Parece que ya eres un poco menos " ?p ", que antes. Sigue asi!" crlf)
+    (printout t "Vuelve a activarme cuando quieras seguir mejorando. Adios!")
+    (halt)
+)
 
 ; ===================== REGLAS JUEGO DE MEMORIA ====================
-
-; !!! QUEDA:
-; 1. Ver acciones a tomar cuando las cartas seleccionadas no son iguales
-; 2. Cuando el usuario elige la misma carta (pj: x1 = 1, x2 = 1)
-; 3. Revisar estrategia del robot (ahora mismo solo voltea pares de cartes correctas)
-; 4. Agregar mas funcionalidad de interaccion
-; 5. Revisar lo del cambio de turno?? (Ahora mismo: se cambia en juegaRobot)
 
 ;Primera regla que se ejecuta cuando el juego elegido es el Juego de Memoria. 
 ;Inicializa el tablero para llevar a cabo el juego
@@ -378,7 +490,7 @@
     (make-instance of CASILLA (x 23) (y 1) (Valor Dog) (Activada False))
     (make-instance of CASILLA (x 24) (y 1) (Valor Monkey) (Activada False))
     (modify-instance ?con (Ronda 1))
-    (printout t "El tablero esta listo, empezamos el juego!" crlf)
+    (printout t "El tablero esta listo, empezamos el juego de memoria!" crlf)
 )
 
 
@@ -453,7 +565,7 @@
     (modify-instance ?cas1 (Activada True))
     (modify-instance ?cas2 (Activada True))
     ;!!! Revisar si esta bien cambiar de turno aqui
-    (modify-instance ?con (Turno Kid))
+    ;(modify-instance ?con (Turno Kid))
     ;Eliminar de la BH el hecho que indica que el robot no ha jugado esta ronda
     (retract ?rp)
     ;Indicar en la BH que el robot ya jugo en esta ronda
@@ -480,14 +592,14 @@
     (assert (xKid (read)))
     (printout t "Ingresa la segunda carta: " crlf)
     (assert (yKid (read)))
-    (printout t "Ingresa el tiempo tomado:" crlf)
+    (printout t "Ingresa el tiempo tomado (en segundos):" crlf)
     (modify-instance ?con (Cronometro (read)))
 )
 
 
 (defrule juegaKid_JM
     ;Turno del niño
-    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Ronda ?r))
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Ronda ?r) (Personalidad ?p) (Cronometro ?c))
     ;Se ejecuta cuando las cartas seleccionadas (x e y) tienen el mismo valor, no se han volteado (activado) aun..
     ?xkid <- (xKid ?carta1)
     ?ykid <- (yKid ?carta2)
@@ -499,6 +611,23 @@
 
     ;El niño no ha jugado en esta ronda
     ?kp <- (kidPlayed False)
+
+    ?tw <- (timeWarningDone ?war)
+
+    ;Se ejecutara la regla cuando:
+    (test (or
+            (or
+                (or
+                    ;O bien, el niño es distraido pero tomo una decision en menos de 15 segundos
+                    (and (eq ?p Distraido) (< ?c 15))
+                    ;O bien, el niño es impaciente pero penso durante mas de 3 segundos para tomar su decision
+                    (and (eq ?p Impaciente) (> ?c 3)))
+                ; O bien, el warning por motivos de tiempo ya se ha hecho
+                (eq ?war True))
+            ;O bien, el niño es de personalidad Neutro, por lo que no se necesita hacer un warning por motivos de tiempo
+            (eq ?p Neutro))
+    )
+
     =>
     ;Borra hechos de entrada (x e y) para que se vuelvan a solicitar en la ronda siguiente
     (retract ?xkid)
@@ -509,12 +638,14 @@
     ;Indica en la BH que el niño ya jugo en esta ronda
     (retract ?kp)
     (assert (kidPlayed True))
+    ;Borrar de la BH el hecho de el warning por motivos de tiempo pues se reseteara al cambiar de turno al niño en la siguiente ronda
+    (retract ?tw)
 
     (printout t "Has volteado las cartas: " ?carta1 " y " ?carta2 ", y has acertado! Ambas eran: " ?val1 crlf)
 )
 
 
-; ------------------ Reglas para interaccion Robot-Paciente --------------------
+; ------------------ Reglas para interaccion Robot-Paciente en JM --------------------
 
 ;Indica que la casilla esta fuera de rango y elimina la entrada del usurio para obligarle a ingresar una nueva (x)
 (defrule corregirCasillaOutOfBounds_JM
@@ -528,11 +659,17 @@
             (or (> ?carta1 24) (< ?carta1 1)) 
             (or (> ?carta2 24) (< ?carta2 1)))
     )
+
+    ;Almacenar hecho en variable para borrarlo luego
+    ?tw <- (timeWarningDone ?war)
     =>
     (printout t "Accion incorrecta! La carta que has elegido esta fuera de rango." crlf)
     ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
     (retract ?xkid)
     (retract ?ykid)
+    ;Como se va a solicitar de nuevo una entrada, indicar que el warning por motivos de tiempo no se ha realizado
+    (retract ?tw)
+    (assert (timeWarningDone False))
 )
 
 
@@ -551,9 +688,141 @@
             (eq ?a2 True))
     )
 
+    ;Almacenar hecho en variable para borrarlo luego
+    ?tw <- (timeWarningDone ?war)
     =>
     (printout t "Accion incorrecta! Alguna de las cartas que has elegido ya estan volteadas." crlf)
     ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
+    (retract ?xkid)
+    (retract ?ykid)
+    ;Como se va a solicitar de nuevo una entrada, indicar que el warning por motivos de tiempo no se ha realizado
+    (retract ?tw)
+    (assert (timeWarningDone False))
+)
+
+(defrule corregirCasillaIgual_JM_Distraido
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Personalidad Distraido))
+    ;Se corrige al recibir input (x1,x2) del usuario
+    ?xkid <- (xKid ?carta1)
+    ?ykid <- (yKid ?carta2)
+    ;Ejecutar regla cuando carta1 o carta2 esta Activada (volteada)
+    ?cas1 <- (object (is-a CASILLA) (x ?carta1) (Activada ?a1))
+    ?cas2 <- (object (is-a CASILLA) (x ?carta2) (Activada ?a2))
+
+    (test(= ?carta1 ?carta2))
+
+    ;Almacenar hecho en variable para borrarlo luego
+    ?tw <- (timeWarningDone ?war)
+    =>
+    (printout t "Cuidado! Has elegido la misma carta! Recuerda que nuestro objetivo es voltear pares de cartas distintas pero con el mismo animal! Intenta de nuevo." crlf)
+    ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
+    (retract ?xkid)
+    (retract ?ykid)
+    ;Como se va a solicitar de nuevo una entrada, indicar que el warning por motivos de tiempo no se ha realizado
+    (retract ?tw)
+    (assert (timeWarningDone False))
+)
+
+(defrule corregirCasillaIgual_JM_Impaciente
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Personalidad Impaciente))
+    ;Se corrige al recibir input (x1,x2) del usuario
+    ?xkid <- (xKid ?carta1)
+    ?ykid <- (yKid ?carta2)
+    ;Ejecutar regla cuando carta1 o carta2 esta Activada (volteada)
+    ?cas1 <- (object (is-a CASILLA) (x ?carta1) (Activada ?a1))
+    ?cas2 <- (object (is-a CASILLA) (x ?carta2) (Activada ?a2))
+
+    (test(= ?carta1 ?carta2))
+
+    ;Almacenar hecho en variable para borrarlo luego
+    ?tw <- (timeWarningDone ?war)
+    =>
+    (printout t "Oye! No tan rapido, has escogido dos cartas iguales. Tómate tu tiempo, haz memoria y elige dos cartas distintas" crlf)
+    ;Eliminar de la BH los hechos xkid e ykid para que el usuario vuelva a introducir x e y
+    (retract ?xkid)
+    (retract ?ykid)
+    ;Como se va a solicitar de nuevo una entrada, indicar que el warning por motivos de tiempo no se ha realizado
+    (retract ?tw)
+    (assert (timeWarningDone False))
+)
+
+(defrule secondChance_JM_Distraido
+    ;Turno del niño, juego JM, niño distraido, y no ha dado segunda oportunidad en esta ronda
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Personalidad Distraido) (Ronda ?r) (SecondChance False))
+    ;Se ejecuta cuando las cartas seleccionadas (x e y) NO tienen el mismo valor, no se han volteado (activado) aun..
+    ?xkid <- (xKid ?carta1)
+    ?ykid <- (yKid ?carta2)
+    ?cas1 <- (object (is-a CASILLA) (Valor ?val1) (x ?carta1) (Activada False))
+    ?cas2 <- (object (is-a CASILLA) (Valor ?val2) (x ?carta2) (Activada False))
+    (not(test (eq ?val1 ?val2)))
+    ;..y son distintas
+    (not (test (= ?carta1 ?carta2)))
+
+    ;El niño no ha jugado en esta ronda
+    ?kp <- (kidPlayed False)
+    ;Almacenar hecho en variable para borrarlo luego
+    ?tw <- (timeWarningDone ?war)
+    =>
+
+    (printout t "Ohh vaya! Has volteado las cartas: " ?carta1 " y " ?carta2 ", pero no has acertado. Las cartas eran: " ?val1 " y " ?val2 crlf)
+    (printout t "No pasa nada, te dejo que lo intentes una vez más. Trata de enforcarte y hacer memoria!")
+    ;Borra hechos de entrada (x e y) para que se vuelvan a solicitar
+    (retract ?xkid)
+    (retract ?ykid)
+    ;Se deja saber en la BH que ya se dio una segunda oportunidad para que no se vuelva a dar
+    (modify-instance ?con (SecondChance True))
+    ;Como se va a solicitar de nuevo una entrada, indicar que el warning por motivos de tiempo no se ha realizado
+    (retract ?tw)
+    (assert (timeWarningDone False))
+)
+
+(defrule cardsNotEqual_JM_Distraido
+    ;Turno del niño, juego JM, niño distraido, y YA SE DIO segunda oportunidad en esta ronda
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Personalidad Distraido) (Ronda ?r) (SecondChance True))
+    ;Se ejecuta cuando las cartas seleccionadas (x e y) NO tienen el mismo valor, no se han volteado (activado) aun..
+    ?xkid <- (xKid ?carta1)
+    ?ykid <- (yKid ?carta2)
+    ?cas1 <- (object (is-a CASILLA) (Valor ?val1) (x ?carta1) (Activada False))
+    ?cas2 <- (object (is-a CASILLA) (Valor ?val2) (x ?carta2) (Activada False))
+    (not(test (eq ?val1 ?val2)))
+    ;..y son distintas
+    (not (test (= ?carta1 ?carta2)))
+
+    ;El niño no ha jugado en esta ronda
+    ?kp <- (kidPlayed False)
+    =>
+    ;
+    (printout t "Vaya! Has vuelto a fallar. Has volteado 2 cartas con valores: " ?val1 " y " ?val2 crlf) 
+    (printout t "No pasa nada, trata de memorizar las cartas que has volteado y seguro que la proxima lo lograras!" crlf)
+    ;Se vuelve a equivocar, pero como ya se dio una segunda oportunidad, simplemente indica que ya el niño jugo
+    (retract ?kp)
+    (assert (kidPlayed True))
+    ;Se eliminan las cartas introducidas de la BH para que se solicite de nuevo en la siguiente ronda
+    (retract ?xkid)
+    (retract ?ykid)
+)
+
+(defrule cardsNotEqual_JM_Impaciente
+    ;Turno del niño, juego JM y niño impacinete
+    ?con <- (object (is-a CONTROL) (Eleccion JM) (Turno Kid) (Personalidad Impaciente) (Ronda ?r))
+    ;Se ejecuta cuando las cartas seleccionadas (x e y) NO tienen el mismo valor, no se han volteado (activado) aun..
+    ?xkid <- (xKid ?carta1)
+    ?ykid <- (yKid ?carta2)
+    ?cas1 <- (object (is-a CASILLA) (Valor ?val1) (x ?carta1) (Activada False))
+    ?cas2 <- (object (is-a CASILLA) (Valor ?val2) (x ?carta2) (Activada False))
+    (not(test (eq ?val1 ?val2)))
+    ;..y son distintas
+    (not (test (= ?carta1 ?carta2)))
+
+    ;El niño no ha jugado en esta ronda
+    ?kp <- (kidPlayed False)
+    =>
+    ;
+    (printout t "Rayos! No has acertado. Quiza podrias intentar tomarte un poco mas de tiempo para pensar en tu proximo turno." crlf)
+    ;Se vuelve a equivocar, pero como ya se dio una segunda oportunidad, simplemente indica que ya el niño jugo
+    (retract ?kp)
+    (assert (kidPlayed True))
+    ;Se eliminan las cartas introducidas de la BH para que se solicite de nuevo en la siguiente ronda
     (retract ?xkid)
     (retract ?ykid)
 )

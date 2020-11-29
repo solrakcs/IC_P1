@@ -22,17 +22,11 @@
     (slot Cronometro 
         (type INTEGER) 
         (default 0))
-)
-
-(defclass JUEGO (is-a USER)
-    (slot ID 
-        (type SYMBOL) 
-        (allowed-symbols 3R JM))
-    (slot Tiempo 
-        (type INTEGER))
-    (slot EnProgreso 
-        (type SYMBOL) 
-        (allowed-symbols True False))
+    (slot SecondChance
+        (type SYMBOL)
+        (allowed-symbols True False)
+        (default False)
+    )
 )
 
 (defclass CASILLA (is-a USER)
