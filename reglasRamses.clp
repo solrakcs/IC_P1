@@ -166,10 +166,6 @@
 
 ; ===================== REGLAS TRES EN RAYA ====================
 
-; !!! QUEDA:
-; 1. Revisar estrategia del robot
-; 2. Agregar funcionalidad al perder
-
 ;Primera regla que se ejecuta cuando el juego elegido es el Tres en Raya. 
 ;Inicializa el tablero para llevar a cabo el juego
 (defrule initBoard3R
@@ -319,7 +315,6 @@
 ; --------------- Reglas de Input del Usuario para 3 en Raya -----------------
 
 ; Regla para leer el input del niño
-; !!! Esto se puede usar para JM tambien
 (defrule inputKid_3R
     ;Cuando es el turno del niño..
     ?con <- (object (is-a CONTROL) (Eleccion 3R) (Turno Kid) (Cronometro ?c))
@@ -546,8 +541,6 @@
 
 
 ;Estrategia Robot en todas las rondas. Lo hace al azar
-; !!! REVISAR CAMBIOS DE TURNO
-; Ahora mismo se ejecuta solo con cartas iguales
 (defrule JuegaRobot_JM_Rondas
     ?con <- (object (is-a CONTROL) (Eleccion JM) (Personalidad ?p) (Turno Robot))
 
@@ -564,8 +557,6 @@
     ;Marcar las cartas como volteadas (activadas)
     (modify-instance ?cas1 (Activada True))
     (modify-instance ?cas2 (Activada True))
-    ;!!! Revisar si esta bien cambiar de turno aqui
-    ;(modify-instance ?con (Turno Kid))
     ;Eliminar de la BH el hecho que indica que el robot no ha jugado esta ronda
     (retract ?rp)
     ;Indicar en la BH que el robot ya jugo en esta ronda
