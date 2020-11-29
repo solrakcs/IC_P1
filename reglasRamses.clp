@@ -108,7 +108,6 @@
 ; --------- Reglas Generales de Interaccion Robot-Paciente -------
 
 (defrule overTimeDistractedKid
-    ;(declare (salience 10))
     ;Se ejecuta cuando el niño tarda mas de 15 segundos en ingresar (x,y) y es de personalidad distraida
     ?con <- (object (is-a CONTROL) (Turno Kid) (Personalidad Distraido) (Cronometro ?c))
     (test (>= ?c 15))
@@ -126,7 +125,6 @@
 )
 
 (defrule tooFastImpacientKid
-    ;(declare (salience 10))
     ;Se ejecuta cuando el niño tarda menos de 3 segundos en ingresar (x,y) y es de personalidad impaciente
     ?con <- (object (is-a CONTROL) (Turno Kid) (Personalidad Impaciente) (Cronometro ?c))
     (test (<= ?c 3))
