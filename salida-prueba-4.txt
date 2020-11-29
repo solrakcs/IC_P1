@@ -1,0 +1,257 @@
+CLIPS> (run)
+FIRE    1 pickGameNPersonality: *,*
+Hola! Estas listo para jugar conmigo?
+Que quieres jugar hoy? Elige entre 3R (Para 3 en Raya) y JM (Para Juego de Memoria): 
+JM
+==> f-1     (eleccion_usuario JM)
+Como es tu personalidad? (Neutro, Distraido, Impaciente): 
+Impaciente
+==> f-2     (personalidad_usuario Impaciente)
+FIRE    2 readGameNPersonality: f-1,f-2
+==> f-3     (warningBeforeDone False)
+==> f-4     (kidPlayed False)
+==> f-5     (robotPlayed False)
+Has elegido el juego: JM y por lo que me cuentan eres un chicx Impaciente. Dame un segundo para preparar todo!
+FIRE    3 initBoardJM: [gen1]
+El tablero esta listo, empezamos el juego de memoria!
+FIRE    4 warningBeforeTurn_Impacient: [gen1],f-3
+No seas impaciente, espera a que yo mueva primero!
+<== f-3     (warningBeforeDone False)
+==> f-6     (warningBeforeDone True)
+FIRE    5 JuegaRobot_JM_Rondas: [gen1],[gen13],[gen14],f-6,f-5
+<== f-5     (robotPlayed False)
+==> f-7     (robotPlayed True)
+He volteado las cartas: 12 y 13, y he acertado! Ambas eran: Eagle
+FIRE    6 changeTurn: [gen1],f-7
+==> f-8     (timeWarningDone False)
+Ya he terminado! Te toca jugar.
+FIRE    7 inputKid_JM: [gen1],*,*,f-4
+Ingresa la primera carta: 
+1
+==> f-9     (xKid 1)
+Ingresa la segunda carta: 
+24
+==> f-10    (yKid 24)
+Ingresa el tiempo tomado (en segundos):
+1
+FIRE    8 tooFastImpacientKid: [gen1],f-9,f-10,f-8
+Oye! Relaaajate. Has elegido muy rapido! Se que eres muy avispadx, pero trata de disfrutar este tiempo de juego y piensa bien tus jugadas.
+<== f-8     (timeWarningDone False)
+==> f-11    (timeWarningDone True)
+FIRE    9 juegaKid_JM: [gen1],f-9,f-10,[gen2],[gen25],f-4,f-11
+<== f-9     (xKid 1)
+<== f-10    (yKid 24)
+<== f-4     (kidPlayed False)
+==> f-12    (kidPlayed True)
+<== f-11    (timeWarningDone True)
+Has volteado las cartas: 1 y 24, y has acertado! Ambas eran: Monkey
+FIRE   10 changeRound: [gen1],f-12,f-7,f-6
+<== f-12    (kidPlayed True)
+<== f-7     (robotPlayed True)
+==> f-13    (kidPlayed False)
+==> f-14    (robotPlayed False)
+<== f-6     (warningBeforeDone True)
+==> f-15    (warningBeforeDone False)
+Cambio de ronda: 1 a ronda: 2
+FIRE   11 warningBeforeTurn_Impacient: [gen1],f-15
+No seas impaciente, espera a que yo mueva primero!
+<== f-15    (warningBeforeDone False)
+==> f-16    (warningBeforeDone True)
+FIRE   12 JuegaRobot_JM_Rondas: [gen1],[gen3],[gen24],f-16,f-14
+<== f-14    (robotPlayed False)
+==> f-17    (robotPlayed True)
+He volteado las cartas: 2 y 23, y he acertado! Ambas eran: Dog
+FIRE   13 changeTurn: [gen1],f-17
+==> f-18    (timeWarningDone False)
+Ya he terminado! Te toca jugar.
+FIRE   14 inputKid_JM: [gen1],*,*,f-13
+Ingresa la primera carta: 
+1
+==> f-19    (xKid 1)
+Ingresa la segunda carta: 
+24
+==> f-20    (yKid 24)
+Ingresa el tiempo tomado (en segundos):
+5
+FIRE   15 corregirCasillaOcupada_JM: [gen1],f-19,f-20,[gen2],[gen25],f-18
+Accion incorrecta! Alguna de las cartas que has elegido ya estan volteadas.
+<== f-19    (xKid 1)
+<== f-20    (yKid 24)
+<== f-18    (timeWarningDone False)
+==> f-21    (timeWarningDone False)
+FIRE   16 inputKid_JM: [gen1],*,*,f-13
+Ingresa la primera carta: 
+4
+==> f-22    (xKid 4)
+Ingresa la segunda carta: 
+5
+==> f-23    (yKid 5)
+Ingresa el tiempo tomado (en segundos):
+5
+FIRE   17 cardsNotEqual_JM_Impaciente: [gen1],f-22,f-23,[gen5],[gen6],f-13
+Rayos! No has acertado. Quiza podrias intentar tomarte un poco mas de tiempo para pensar en tu proximo turno.
+<== f-13    (kidPlayed False)
+==> f-24    (kidPlayed True)
+<== f-22    (xKid 4)
+<== f-23    (yKid 5)
+FIRE   18 changeRound: [gen1],f-24,f-17,f-16
+<== f-24    (kidPlayed True)
+<== f-17    (robotPlayed True)
+==> f-25    (kidPlayed False)
+==> f-26    (robotPlayed False)
+<== f-16    (warningBeforeDone True)
+==> f-27    (warningBeforeDone False)
+Cambio de ronda: 2 a ronda: 3
+FIRE   19 warningBeforeTurn_Impacient: [gen1],f-27
+No seas impaciente, espera a que yo mueva primero!
+<== f-27    (warningBeforeDone False)
+==> f-28    (warningBeforeDone True)
+FIRE   20 JuegaRobot_JM_Rondas: [gen1],[gen4],[gen23],f-28,f-26
+<== f-26    (robotPlayed False)
+==> f-29    (robotPlayed True)
+He volteado las cartas: 3 y 22, y he acertado! Ambas eran: Cat
+FIRE   21 changeTurn: [gen1],f-29
+Ya he terminado! Te toca jugar.
+FIRE   22 inputKid_JM: [gen1],*,*,f-25
+Ingresa la primera carta: 
+4
+==> f-30    (xKid 4)
+Ingresa la segunda carta: 
+21
+==> f-31    (yKid 21)
+Ingresa el tiempo tomado (en segundos):
+1
+FIRE   23 tooFastImpacientKid: [gen1],f-30,f-31,f-21
+Oye! Relaaajate. Has elegido muy rapido! Se que eres muy avispadx, pero trata de disfrutar este tiempo de juego y piensa bien tus jugadas.
+<== f-21    (timeWarningDone False)
+==> f-32    (timeWarningDone True)
+FIRE   24 juegaKid_JM: [gen1],f-30,f-31,[gen5],[gen22],f-25,f-32
+<== f-30    (xKid 4)
+<== f-31    (yKid 21)
+<== f-25    (kidPlayed False)
+==> f-33    (kidPlayed True)
+<== f-32    (timeWarningDone True)
+Has volteado las cartas: 4 y 21, y has acertado! Ambas eran: Horse
+FIRE   25 changeRound: [gen1],f-33,f-29,f-28
+<== f-33    (kidPlayed True)
+<== f-29    (robotPlayed True)
+==> f-34    (kidPlayed False)
+==> f-35    (robotPlayed False)
+<== f-28    (warningBeforeDone True)
+==> f-36    (warningBeforeDone False)
+Cambio de ronda: 3 a ronda: 4
+FIRE   26 warningBeforeTurn_Impacient: [gen1],f-36
+No seas impaciente, espera a que yo mueva primero!
+<== f-36    (warningBeforeDone False)
+==> f-37    (warningBeforeDone True)
+FIRE   27 JuegaRobot_JM_Rondas: [gen1],[gen6],[gen21],f-37,f-35
+<== f-35    (robotPlayed False)
+==> f-38    (robotPlayed True)
+He volteado las cartas: 5 y 20, y he acertado! Ambas eran: Shark
+FIRE   28 changeTurn: [gen1],f-38
+==> f-39    (timeWarningDone False)
+Ya he terminado! Te toca jugar.
+FIRE   29 inputKid_JM: [gen1],*,*,f-34
+Ingresa la primera carta: 
+6
+==> f-40    (xKid 6)
+Ingresa la segunda carta: 
+19
+==> f-41    (yKid 19)
+Ingresa el tiempo tomado (en segundos):
+5
+FIRE   30 juegaKid_JM: [gen1],f-40,f-41,[gen7],[gen20],f-34,f-39
+<== f-40    (xKid 6)
+<== f-41    (yKid 19)
+<== f-34    (kidPlayed False)
+==> f-42    (kidPlayed True)
+<== f-39    (timeWarningDone False)
+Has volteado las cartas: 6 y 19, y has acertado! Ambas eran: Tiger
+FIRE   31 changeRound: [gen1],f-42,f-38,f-37
+<== f-42    (kidPlayed True)
+<== f-38    (robotPlayed True)
+==> f-43    (kidPlayed False)
+==> f-44    (robotPlayed False)
+<== f-37    (warningBeforeDone True)
+==> f-45    (warningBeforeDone False)
+Cambio de ronda: 4 a ronda: 5
+FIRE   32 warningBeforeTurn_Impacient: [gen1],f-45
+No seas impaciente, espera a que yo mueva primero!
+<== f-45    (warningBeforeDone False)
+==> f-46    (warningBeforeDone True)
+FIRE   33 JuegaRobot_JM_Rondas: [gen1],[gen8],[gen19],f-46,f-44
+<== f-44    (robotPlayed False)
+==> f-47    (robotPlayed True)
+He volteado las cartas: 7 y 18, y he acertado! Ambas eran: Pig
+FIRE   34 changeTurn: [gen1],f-47
+==> f-48    (timeWarningDone False)
+Ya he terminado! Te toca jugar.
+FIRE   35 inputKid_JM: [gen1],*,*,f-43
+Ingresa la primera carta: 
+8
+==> f-49    (xKid 8)
+Ingresa la segunda carta: 
+17
+==> f-50    (yKid 17)
+Ingresa el tiempo tomado (en segundos):
+5
+FIRE   36 juegaKid_JM: [gen1],f-49,f-50,[gen9],[gen18],f-43,f-48
+<== f-49    (xKid 8)
+<== f-50    (yKid 17)
+<== f-43    (kidPlayed False)
+==> f-51    (kidPlayed True)
+<== f-48    (timeWarningDone False)
+Has volteado las cartas: 8 y 17, y has acertado! Ambas eran: Dolphin
+FIRE   37 changeRound: [gen1],f-51,f-47,f-46
+<== f-51    (kidPlayed True)
+<== f-47    (robotPlayed True)
+==> f-52    (kidPlayed False)
+==> f-53    (robotPlayed False)
+<== f-46    (warningBeforeDone True)
+==> f-54    (warningBeforeDone False)
+Cambio de ronda: 5 a ronda: 6
+FIRE   38 warningBeforeTurn_Impacient: [gen1],f-54
+No seas impaciente, espera a que yo mueva primero!
+<== f-54    (warningBeforeDone False)
+==> f-55    (warningBeforeDone True)
+FIRE   39 JuegaRobot_JM_Rondas: [gen1],[gen10],[gen17],f-55,f-53
+<== f-53    (robotPlayed False)
+==> f-56    (robotPlayed True)
+He volteado las cartas: 9 y 16, y he acertado! Ambas eran: Dragon
+FIRE   40 changeTurn: [gen1],f-56
+==> f-57    (timeWarningDone False)
+Ya he terminado! Te toca jugar.
+FIRE   41 inputKid_JM: [gen1],*,*,f-52
+Ingresa la primera carta: 
+10
+==> f-58    (xKid 10)
+Ingresa la segunda carta: 
+15
+==> f-59    (yKid 15)
+Ingresa el tiempo tomado (en segundos):
+5
+FIRE   42 juegaKid_JM: [gen1],f-58,f-59,[gen11],[gen16],f-52,f-57
+<== f-58    (xKid 10)
+<== f-59    (yKid 15)
+<== f-52    (kidPlayed False)
+==> f-60    (kidPlayed True)
+<== f-57    (timeWarningDone False)
+Has volteado las cartas: 10 y 15, y has acertado! Ambas eran: Panda
+FIRE   43 changeRound: [gen1],f-60,f-56,f-55
+<== f-60    (kidPlayed True)
+<== f-56    (robotPlayed True)
+==> f-61    (kidPlayed False)
+==> f-62    (robotPlayed False)
+<== f-55    (warningBeforeDone True)
+==> f-63    (warningBeforeDone False)
+Cambio de ronda: 6 a ronda: 7
+FIRE   44 warningBeforeTurn_Impacient: [gen1],f-63
+No seas impaciente, espera a que yo mueva primero!
+<== f-63    (warningBeforeDone False)
+==> f-64    (warningBeforeDone True)
+FIRE   45 JuegaRobot_JM_Rondas: [gen1],[gen12],[gen15],f-64,f-62
+<== f-62    (robotPlayed False)
+==> f-65    (robotPlayed True)
+He volteado las cartas: 11 y 14, y he acertado! Ambas eran: Bird
+FIRE   46 CondicionVictoria_JM: [gen1],f-61,f-65,[gen2],[gen3],[gen4],[gen5],[gen6],[gen7],[gen8],[gen9],[gen10],[gen11],[gen12],[gen13],[gen14],[gen15],[gen16],[gen17],[gen18],[gen19],[gen20],[gen21],[gen22],[gen23],[gen24],[gen25]
+Felicidades! Hemos ganado el juego en: 7 rondas! Buen trabajo!
